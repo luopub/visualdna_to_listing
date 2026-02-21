@@ -90,8 +90,8 @@ class HunyuanImageTool(BaseTool):
 
                         # Save prompt with the same name (.txt)
                         prompt_path = file_path.with_suffix('.txt')
-                        content = 'Reference Images:' + '\n'.join(reference_images) if reference_images else 'None'
-                        content += '\n' + 'Prompt:' + prompt
+                        content = 'Reference Images:\n' + ('\n'.join(reference_images) if reference_images else 'None')
+                        content += '\n' + 'Prompt:\n' + prompt
                         prompt_path.write_text(content, encoding='utf-8')
 
                     paths_str = "\n".join(saved_paths)

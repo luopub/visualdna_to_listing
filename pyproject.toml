@@ -9,7 +9,8 @@ dependencies = [
 ]
 
 [project.scripts]
-visualdna_to_listing = "visualdna_to_listing.main:run"
+research_product = "visualdna_to_listing.main:run_productresearchcrew"
+visualdna_to_listing = "visualdna_to_listing.main:run_visualdnatolistingcrew"
 run_crew = "visualdna_to_listing.main:run"
 train = "visualdna_to_listing.main:train"
 replay = "visualdna_to_listing.main:replay"

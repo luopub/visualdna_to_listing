@@ -1,3 +1,27 @@
+market_intelligence_task:
+  description: |
+    Start by prompting the user to input a product name with tool user_input_tool.
+    Then, ask user to input some key information about the product, such as its price point, target audience, and competitors.
+    Conduct an in-depth search for the product on Amazon, Walmart, and relevant tech/lifestyle review blogs. 
+    1. Identify the top 3 competitors and their core Unique Selling Propositions (USPs).
+    2. Extract at least 10 authentic user scenarios (e.g., "using the lamp at 2 AM for coding").
+    3. List the top 5 recurring complaints or anxieties mentioned by buyers.
+    4. Observe the visual style of high-performing competitors (lighting, background, angles).
+  expected_output: >
+    A structured report in markdown format that containing competitor analysis, a prioritized list of customer pain points, and a library of real-world usage scenarios.
+  agent: product_research_specialist
+
+resource_kit_generation_task:
+  description: |
+    Based on the intelligence gathered, populate the 'Product Image Toolkit v3.0' template. You must:
+    1. Define 'Scenario Context' based on real user habits (e.g., 'Messy desk' vs 'Minimalist office').
+    2. Select 'Visual Mood Keywords' that contrast with competitor weaknesses.
+    3. Design at least 3 specific 'Composition Perspectives' that visually debunk the top 5 customer anxieties (e.g., if users fear size issues, suggest a shot with a known reference object like a smartphone).
+    4. Specify 'Negative Elements' to avoid based on identified market cliches.
+  expected_output: >
+    A detailed finalized Product Resource Kit in Markdown format for the specified product category.
+  agent: strategic_visual_planner
+
 collect_product_info_task:
   description: |
     1. Read all contents of resource kit file "resource_kit_researched.md" to understand the current product researched context. If it cannot be read all at once, please read it repeatedly in cycles until it is fully read.
@@ -7,7 +31,7 @@ collect_product_info_task:
          * Size list (e.g., Small/Medium/Large dimensions)
          * Material composition (e.g., 100% cotton canvas, polyester blend)
          * Color variants available
-         * Any other unique product specifications according to the resource kit
+         * Any other product parameters that are helpful to differentiate this product from others.
     3. Parse and analyze the provided raw photos to extract visual characteristics.
     4. Refine the resource kit:
        - Add raw photo file paths in a new "Raw Product Photos" section.
@@ -44,8 +68,9 @@ plan_and_write_prompts_task:
     3. MATERIAL FIDELITY: Every prompt must reference the physical file paths (e.g., simulate-1.png) and describe the textures found in the 'Raw Materials' section (e.g., large-gauge zipper, 300L capacity).
     4. SCENARIO ALIGNMENT: Use the 'Scenario Context' table to build the 10-image set, specifically focusing on Scenarios.
     5. ANXIETY DEBUNKING: Implement the "Composition Perspectives" (1-6) to address customer fears.
-    6. The prompts must match the referenced raw photos in terms of visual characteristics. Do not add additional parts onto the raw photos.
-    7. Appropriate raw photos must be selected and explicitly referenced in the prompts to ensure the generated images reflect the real outlook and qualities of the product.
+    6. The prompts must follow the referenced raw photos in terms of visual characteristics and details. Do not add additional parts onto the raw photos.
+    7. At least one raw photos must be selected and explicitly referenced in the prompts to ensure the generated images reflect the real outlook and qualities of the product.
+    8. Any text that will be shown on the image must be in English.
   expected_output: |
     A list of 10 structured prompts. Each prompt must include: 
     - Scene Name (e.g., The Honest Hero Shot)

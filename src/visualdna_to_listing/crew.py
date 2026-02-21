@@ -5,13 +5,15 @@ from crewai import LLM, Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
-# from crewai_tools import SerperDevTool, ScrapeWebsiteTool, FileReadTool
 from crewai.tools import tool
 from .tools.custom_tool import HunyuanImageTool, UserInputTool
 import httpx
 from crewai.llms.hooks import BaseInterceptor
 from .tools.my_file_read_tool import MyFileReadTool as FileReadTool
+from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 
+search_tool = SerperDevTool()
+scrape_tool = ScrapeWebsiteTool()
 file_read_tool = FileReadTool(encoding="utf-8")  # Example of initializing the file read tool with UTF-8 encoding
 image_generator_tool = HunyuanImageTool()
 user_input_tool = UserInputTool()
@@ -73,6 +75,53 @@ class VisualdnaToListing():
 
     agents: List[BaseAgent]
     tasks: List[Task]
+
+    @agent
+    def product_research_specialist(self) -> Agent:
+        return Agent(
+            config=self.agents_config['product_research_specialist'], # type: ignore[index]
+            verbose=True,
+            llm=llm,
+            tools=[search_tool, scrape_tool,user_input_tool],
+            allow_delegation=False
+        )
+    
+    @agent
+    def strategic_visual_planner(self) -> Agent:
+        return Agent(
+            config=self.agents_config['strategic_visual_planner'], # type: ignore[index]
+            verbose=True,
+            llm=llm,
+            tools=[file_read_tool],
+            allow_delegation=False
+        )
+
+    @task
+    def market_intelligence_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['market_intelligence_task'], # type: ignore[index]
+        )
+    @task
+    def resource_kit_generation_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['resource_kit_generation_task'], # type: ignore[index]
+            output_file='resource_kit_researched.md',
+        )
+    @crew
+    def product_research_crew(self) -> Crew:
+        """Creates the VisualdnaToListing crew"""
+        # To learn how to add knowledge sources to your crew, check out the documentation:
+        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
+
+        return Crew(
+            # agents=self.agents, # Automatically created by the @agent decorator
+            agents=[self.product_research_specialist(), self.strategic_visual_planner()],
+            # tasks=self.tasks, # Automatically created by the @task decorator
+            tasks=[self.market_intelligence_task(), self.resource_kit_generation_task()],
+            # tasks=[*self.tasks[2:]],  #, self.define_visual_dna_task, self.plan_and_write_prompts_task, self.generate_listing_images_task],
+            process=Process.sequential,
+            verbose=True,
+        )
 
     @agent
     def product_info_collector(self) -> Agent:
@@ -144,14 +193,16 @@ class VisualdnaToListing():
         )
 
     @crew
-    def crew(self) -> Crew:
+    def visualdna_to_listing_crew(self) -> Crew:
         """Creates the VisualdnaToListing crew"""
         # To learn how to add knowledge sources to your crew, check out the documentation:
         # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
+            # agents=self.agents, # Automatically created by the @agent decorator
+            agents=[self.product_info_collector(), self.visual_dna_architect(), self.creative_prompt_engineer(), self.image_production_specialist()],
+            # tasks=self.tasks, # Automatically created by the @task decorator
+            tasks=[self.collect_product_info_task(), self.confirm_and_save_facts_task(), self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.generate_listing_images_task()],
             # tasks=[*self.tasks[2:]],  #, self.define_visual_dna_task, self.plan_and_write_prompts_task, self.generate_listing_images_task],
             process=Process.sequential,
             verbose=True,

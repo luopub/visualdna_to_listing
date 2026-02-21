@@ -12,17 +12,27 @@ warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 # crew locally, so refrain from adding unnecessary logic into this file.
 # Replace with inputs you want to test with, it will automatically
 # interpolate any tasks and agents information
-
-def run():
+def run_productresearchcrew():
     """
     Run the crew.
     """
     inputs = {
-        "product_name": "Bean Bag Cover for Kids"
     }
 
     try:
-        VisualdnaToListing().crew().kickoff(inputs=inputs)
+        VisualdnaToListing().product_research_crew().kickoff(inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while running the crew: {e}")
+
+def run_visualdnatolistingcrew():
+    """
+    Run the crew.
+    """
+    inputs = {
+    }
+
+    try:
+        VisualdnaToListing().visualdna_to_listing_crew().kickoff(inputs=inputs)
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
