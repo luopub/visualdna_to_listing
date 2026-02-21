@@ -6,7 +6,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai.tools import tool
-from .tools.custom_tool import HunyuanImageTool, UserInputTool
+from .tools.custom_tool import HunyuanImageTool, UserInputTool, GetImageDescTool
 import httpx
 from crewai.llms.hooks import BaseInterceptor
 from .tools.my_file_read_tool import MyFileReadTool as FileReadTool
@@ -17,6 +17,7 @@ scrape_tool = ScrapeWebsiteTool()
 file_read_tool = FileReadTool(encoding="utf-8")  # Example of initializing the file read tool with UTF-8 encoding
 image_generator_tool = HunyuanImageTool()
 user_input_tool = UserInputTool()
+get_image_desc_tool = GetImageDescTool()
 
 @tool
 def image_generator_tool2(prompts: str, reference_images: list[str] | None=None, saved_images: list[str] | None=None) -> None:
@@ -129,6 +130,7 @@ class VisualdnaToListing():
         return Agent(
             config=self.agents_config['product_info_collector'],
             verbose=True,
+            tools=[get_image_desc_tool],
             llm=llm
         )
 
@@ -186,6 +188,13 @@ class VisualdnaToListing():
         )
 
     @task
+    def image_prompts_review_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['image_prompts_review_task'], # type: ignore[index]
+            tools=[file_read_tool]
+        )
+
+    @task
     def generate_listing_images_task(self) -> Task:
         return Task(
             config=self.tasks_config['generate_listing_images_task'], # type: ignore[index]
@@ -202,7 +211,7 @@ class VisualdnaToListing():
             # agents=self.agents, # Automatically created by the @agent decorator
             agents=[self.product_info_collector(), self.visual_dna_architect(), self.creative_prompt_engineer(), self.image_production_specialist()],
             # tasks=self.tasks, # Automatically created by the @task decorator
-            tasks=[self.collect_product_info_task(), self.confirm_and_save_facts_task(), self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.generate_listing_images_task()],
+            tasks=[self.collect_product_info_task(), self.confirm_and_save_facts_task(), self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.image_prompts_review_task(), self.generate_listing_images_task()],
             # tasks=[*self.tasks[2:]],  #, self.define_visual_dna_task, self.plan_and_write_prompts_task, self.generate_listing_images_task],
             process=Process.sequential,
             verbose=True,

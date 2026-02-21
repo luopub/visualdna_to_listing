@@ -103,5 +103,6 @@ def run_with_trigger():
         raise Exception(f"An error occurred while running the crew with trigger: {e}")
 
 if __name__ == "__main__":
-    result = run()
+    # result = run_productresearchcrew()
+    result = run_visualdnatolistingcrew()
     print("Result:", result)

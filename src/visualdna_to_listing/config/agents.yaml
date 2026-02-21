@@ -37,7 +37,7 @@ product_info_collector:
     essential information needed for accurate image generation. You understand
     that precise product parameters are critical for creating authentic
     product images.
-  max_iter: 30
+  max_iter: 40
 
 visual_dna_architect:
   role: >

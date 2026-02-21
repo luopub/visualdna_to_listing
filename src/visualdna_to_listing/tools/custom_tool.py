@@ -1,6 +1,11 @@
+import os
+
+from crewai import LLM
 from crewai.tools import BaseTool
 from typing import Type, Optional, List
 from pydantic import BaseModel, Field
+import base64
+from pathlib import Path
 
 
 class UserInputToolInput(BaseModel):
@@ -104,3 +109,157 @@ class HunyuanImageTool(BaseTool):
 
         except Exception as e:
             return f"Image generation error: {str(e)}"
+
+
+# Vision LLM for image description
+_vision_llm: LLM | None = None
+
+
+def get_vision_llm() -> LLM:
+    """Get or create the vision LLM instance."""
+    global _vision_llm
+    if _vision_llm is None:
+        _vision_llm = LLM(
+            model="qwen3.5-plus",
+            api_key=os.environ.get("DASHSCOPE_API_KEY"),
+            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )
+    return _vision_llm
+
+
+class GetImageDescToolInput(BaseModel):
+    """Input schema for GetImageDescTool."""
+    image_source: str = Field(..., description="Image source: URL (http/https) or local file path.")
+    focus_aspect: Optional[str] = Field(default=None, description="Optional aspect to focus on (e.g., 'product features', 'color scheme', 'background', 'style').")
+
+
+class GetImageDescTool(BaseTool):
+    """Tool for getting image descriptions useful for product listing image generation prompts."""
+    name: str = "get_image_description"
+    description: str = (
+        "Analyze an image and generate a detailed description useful for creating product listing image generation prompts. "
+        "Supports both URLs and local file paths. "
+        "Focuses on visual elements like product features, colors, composition, lighting, and style. "
+        "Optionally specify a focus_aspect to concentrate the analysis on specific elements."
+    )
+    args_schema: Type[BaseModel] = GetImageDescToolInput
+
+    def _run(self, image_source: str, focus_aspect: str | None = None) -> str:
+        # Prepare image content
+        if image_source.startswith("http://") or image_source.startswith("https://"):
+            # URL source
+            image_url = image_source
+        else:
+            # Local file - convert to base64 data URL
+            try:
+                file_path = Path(image_source)
+                if not file_path.exists():
+                    return f"Error: Local file not found: {image_source}"
+
+                # Detect image type
+                suffix = file_path.suffix.lower()
+                mime_types = {
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.png': 'image/png',
+                    '.gif': 'image/gif',
+                    '.webp': 'image/webp'
+                }
+                mime_type = mime_types.get(suffix, 'image/jpeg')
+
+                with open(file_path, "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode('utf-8')
+
+                image_url = f"data:{mime_type};base64,{image_data}"
+            except Exception as e:
+                return f"Error reading local file: {str(e)}"
+
+        # Build the prompt for product listing focused description
+        base_prompt = """Analyze this image and provide a detailed description optimized for creating product listing image generation prompts.
+
+Focus on:
+1. **Product/Subject**: What is the main subject? Describe its key features, shape, material appearance, and distinctive characteristics.
+2. **Colors**: List the main colors present, including exact shades if identifiable.
+3. **Composition**: Describe the layout, positioning, and spatial arrangement.
+4. **Lighting**: Note the lighting style (natural, studio, soft, dramatic, etc.) and direction.
+5. **Background**: Describe the background elements, colors, and setting.
+6. **Style/Mood**: Identify the visual style (minimalist, lifestyle, commercial, artistic) and overall mood.
+7. **Texture & Details**: Note any visible textures, patterns, or fine details.
+Summarize the final description in a clear and concise manner in less than 100 words. Output only the summary. Ensure the output is in English.
+"""
+
+# Format the output as a structured description that can be directly used as reference for generating similar product listing images."""
+
+        if focus_aspect:
+            base_prompt += f"\n\n**Special Focus**: Pay extra attention to '{focus_aspect}' in your analysis."
+
+        try:
+            llm = get_vision_llm()
+            response = llm.call(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": base_prompt},
+                            {"type": "image_url", "image_url": {"url": image_url}}
+                        ]
+                    }
+                ]
+            )
+            return response or "No description generated."
+
+        except Exception as e:
+            return f"Error analyzing image: {str(e)}"
+
+
+if __name__ == "__main__":
+    # ========== Test GetImageDescTool ==========
+    print("=" * 50)
+    print("GetImageDescTool Test")
+    print("=" * 50)
+
+    # Check if API key is set
+    if not os.environ.get("DASHSCOPE_API_KEY"):
+        print("Error: DASHSCOPE_API_KEY environment variable is not set.")
+        print("Please set it before running the test:")
+        print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
+        print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
+        exit(1)
+
+    tool = GetImageDescTool()
+
+    # Test 1: Analyze a local image file
+    print("\n--- Test 1: Local Image File ---")
+    test_image = input("Enter path to a test image file (or press Enter to skip): ").strip()
+    if test_image:
+        print(f"\nAnalyzing: {test_image}")
+        result = tool._run(image_source=test_image)
+        print(f"\nResult:\n{result}")
+    else:
+        print("Skipped local file test.")
+
+    # Test 2: Analyze an image URL
+    print("\n--- Test 2: Image URL ---")
+    test_url = input("Enter an image URL (or press Enter to skip): ").strip()
+    if test_url:
+        print(f"\nAnalyzing: {test_url}")
+        result = tool._run(image_source=test_url)
+        print(f"\nResult:\n{result}")
+    else:
+        print("Skipped URL test.")
+
+    # Test 3: Analyze with focus aspect
+    print("\n--- Test 3: With Focus Aspect ---")
+    if test_image or test_url:
+        source = test_image or test_url
+        focus = input("Enter focus aspect (e.g., 'colors', 'style', or press Enter to skip): ").strip()
+        if focus:
+            print(f"\nAnalyzing with focus on '{focus}': {source}")
+            result = tool._run(image_source=source, focus_aspect=focus)
+            print(f"\nResult:\n{result}")
+    else:
+        print("Skipped focus aspect test (no image provided).")
+
+    print("\n" + "=" * 50)
+    print("Test completed")
+    print("=" * 50)
