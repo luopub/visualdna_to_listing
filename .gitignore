@@ -4,3 +4,4 @@ __pycache__/
 resource_kit_*.md
 generated_images/
 llm_log*.json
+logs/
