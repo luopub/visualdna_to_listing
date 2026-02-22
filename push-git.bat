@@ -7,19 +7,6 @@ echo Git Push Script for visualdna_to_listing
 echo ========================================
 echo.
 
-:: Check if remote repositories are configured
-git remote | findstr /x "gitee" >nul
-if errorlevel 1 (
-    echo [INFO] Adding gitee remote...
-    git remote add gitee https://gitee.com/luopub/visualdna_to_listing.git
-)
-
-git remote | findstr /x "github" >nul
-if errorlevel 1 (
-    echo [INFO] Adding github remote...
-    git remote add github https://github.com/luopub/visualdna_to_listing.git
-)
-
 :: Get commit message from user or use default
 set /p commit_msg="Enter commit message (press Enter for default): "
 if "%commit_msg%"=="" (
@@ -36,11 +23,11 @@ git commit -m "%commit_msg%"
 
 echo.
 echo [3/4] Pushing to Gitee...
-git push gitee master
+git push https://gitee.com/luopub/visualdna_to_listing.git master
 
 echo.
 echo [4/4] Pushing to GitHub...
-git push github master
+git push https://github.com/luopub/visualdna_to_listing.git master
 
 echo.
 echo ========================================

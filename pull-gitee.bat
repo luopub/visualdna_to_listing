@@ -7,7 +7,7 @@ echo ========================================
 echo.
 
 echo Pulling from gitee master...
-git pull gitee master
+git pull https://gitee.com/luopub/visualdna_to_listing.git master
 
 echo.
 echo ========================================
