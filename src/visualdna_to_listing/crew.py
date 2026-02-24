@@ -164,6 +164,12 @@ class VisualdnaToListing():
             tools=[file_read_tool, user_input_tool],
             # output_file="resource_kit_refined.md",
         )
+    
+    @task
+    def reference_photo_description_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['reference_photo_description_task'], # type: ignore[index]
+        )
 
     @task
     def confirm_and_save_facts_task(self) -> Task:
@@ -211,7 +217,7 @@ class VisualdnaToListing():
             # agents=self.agents, # Automatically created by the @agent decorator
             agents=[self.product_info_collector(), self.visual_dna_architect(), self.creative_prompt_engineer(), self.image_production_specialist()],
             # tasks=self.tasks, # Automatically created by the @task decorator
-            tasks=[self.collect_product_info_task(), self.confirm_and_save_facts_task(), self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.image_prompts_review_task(), self.generate_listing_images_task()],
+            tasks=[self.collect_product_info_task(), self.reference_photo_description_task(), self.confirm_and_save_facts_task(), self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.image_prompts_review_task(), self.generate_listing_images_task()],
             # tasks=[*self.tasks[2:]],  #, self.define_visual_dna_task, self.plan_and_write_prompts_task, self.generate_listing_images_task],
             process=Process.sequential,
             verbose=True,

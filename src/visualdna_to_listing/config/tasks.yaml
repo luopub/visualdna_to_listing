@@ -26,19 +26,25 @@ collect_product_info_task:
   description: |
     1. Read all contents of resource kit file "resource_kit_researched.md" to understand the current product researched context. If it cannot be read all at once, please read it repeatedly in cycles until it is fully read.
     2. Prompt the user to provide the following essential information one at a time:
-       - At least one or more product raw photo file paths (absolute paths to actual product photos, one path at a time, empty string for end of input). Remove duplicated paths if exist.
+       - At least one or more product reference photo file paths (absolute paths to actual product photos, one path at a time, empty string for end of input). Remove duplicated paths if exist.
        - Product-specific parameters that differentiate this product from competitors:
          * Size list (e.g., Small/Medium/Large dimensions)
          * Material composition (e.g., 100% cotton canvas, polyester blend)
          * Color variants available
          * Any other product parameters that are helpful to differentiate this product from others.
     3. Refine the resource kit:
-       - Add raw photo file paths in a new "Raw Product Photos" section.
-       - Add detailed product descriptions for each raw photo. The image description should be extracted with tool get_image_desc_tool.
+       - Add reference photo file paths in a new "Reference Product Photos" section.
        - Remove or revise content that is conflicting with the photo or product parameters provided by the user.
        - Add detailed product parameters in the "Basic Product Facts" section
   expected_output: |
     The refined resource kit updated with all product-specific information from user input in markdown format.
+  agent: product_info_collector
+
+reference_photo_description_task:
+  description: |
+    Get the reference photo file paths from the resource kit. Then, for each photo, generate a description in reference text in less tha 100 words and put the description under the corresponding photo file path in the "Reference Product Photos" section.
+  expected_output: |
+    A refined resource kit with all reference photo file paths and descriptions in markdown format.
   agent: product_info_collector
 
 confirm_and_save_facts_task:
@@ -67,27 +73,27 @@ plan_and_write_prompts_task:
     3. MATERIAL FIDELITY: Every prompt must reference the physical file paths (e.g., simulate-1.png) and describe the textures found in the 'Raw Materials' section (e.g., large-gauge zipper, 300L capacity).
     4. SCENARIO ALIGNMENT: Use the 'Scenario Context' table to build the 10-image set, specifically focusing on Scenarios.
     5. ANXIETY DEBUNKING: Implement the "Composition Perspectives" (1-6) to address customer fears.
-    6. The prompts must follow the referenced raw photos in terms of visual characteristics and details. Do not add additional parts onto the raw photos.
-    7. At least one raw photos must be selected and explicitly referenced in the prompts to ensure the generated images reflect the real outlook and qualities of the product.
+    6. The prompts must follow the referenced reference photos in terms of visual characteristics and details. Do not add additional parts onto the reference photos.
+    7. At least one reference photos must be selected and explicitly referenced in the prompts to ensure the generated images reflect the real outlook and qualities of the product.
     8. Any text that will be shown on the image must be in English.
     9. First prompt must be a "Hero Shot" that focuses on the most important product USPs.
   expected_output: |
     A list of 10 structured prompts. Each prompt must include: 
     - Scene Name (e.g., The Honest Hero Shot)
-    - Reference Image Paths (One or more, selected from Resource Kit raw photos list)
+    - Reference Image Paths (One or more, selected from Resource Kit reference photos list)
     - Detailed description of product USPs
     - Targeted Aspect Ratio 1:1.
   agent: creative_prompt_engineer
 
 image_prompts_review_task:
   description: |
-    Review the 10 prompts produced in the previous task. Ensure each prompt is well-structured and references at least one raw photo.
-    - If a prompt is missing a reference image, load file resource_kit_refined.md to find one or more suitable raw photos.
+    Review the 10 prompts produced in the previous task. Ensure each prompt is well-structured and references at least one reference photo.
+    - If a prompt is missing a reference image, load file resource_kit_refined.md to find one or more suitable reference photos.
     If all prompts are well-structured, approve them for image generation without change.
     Do not modify the prompts text.
   expected_output: |
     A list of 10 well-structured prompts. Each prompt must include:
-    - Reference Image Paths (One or more, selected from Resource Kit raw photos list)
+    - Reference Image Paths (One or more, selected from Resource Kit reference photos list)
     - Prompt text for image generation
   agent: creative_prompt_engineer
 
