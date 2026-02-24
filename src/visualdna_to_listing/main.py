@@ -103,6 +103,32 @@ def run_with_trigger():
         raise Exception(f"An error occurred while running the crew with trigger: {e}")
 
 if __name__ == "__main__":
-    # result = run_productresearchcrew()
-    result = run_visualdnatolistingcrew()
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="VisualDNA to Listing Crew")
+    parser.add_argument("-r", action="store_true", help="Run product research crew")
+    parser.add_argument("-g", action="store_true", help="Run visualdna to listing crew")
+    args = parser.parse_args()
+    
+    if args.r:
+        print("Running product research crew...")
+        result = run_productresearchcrew()
+    elif args.g:
+        print("Running visualdna to listing crew...")
+        result = run_visualdnatolistingcrew()
+    else:
+        print("请选择要运行的 crew:")
+        print("  1. Product Research Crew (输入 r)")
+        print("  2. VisualDNA to Listing Crew (输入 g)")
+        choice = input("请输入选择 (r/g): ").strip().lower()
+        if choice == "r":
+            print("Running product research crew...")
+            result = run_productresearchcrew()
+        elif choice == "g":
+            print("Running visualdna to listing crew...")
+            result = run_visualdnatolistingcrew()
+        else:
+            print("无效选择，请输入 r 或 g")
+            sys.exit(1)
+    
     print("Result:", result)
