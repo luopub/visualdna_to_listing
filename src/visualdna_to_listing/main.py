@@ -36,6 +36,18 @@ def run_visualdnatolistingcrew():
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
+def run_refindedresourcekittolistingcrew():
+    """
+    Run the crew.
+    """
+    inputs = {
+    }
+
+    try:
+        VisualdnaToListing().refinded_resourcekit_to_listing_crew().kickoff(inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while running the crew: {e}")
+
 
 def train():
     """
@@ -108,6 +120,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="VisualDNA to Listing Crew")
     parser.add_argument("-r", action="store_true", help="Run product research crew")
     parser.add_argument("-g", action="store_true", help="Run visualdna to listing crew")
+    parser.add_argument("-f", action="store_true", help="Run refined resourcekit to listing crew")
     args = parser.parse_args()
     
     if args.r:
@@ -116,19 +129,26 @@ if __name__ == "__main__":
     elif args.g:
         print("Running visualdna to listing crew...")
         result = run_visualdnatolistingcrew()
+    elif args.f:
+        print("Running refined resourcekit to listing crew...")
+        result = run_refindedresourcekittolistingcrew()
     else:
         print("请选择要运行的 crew:")
         print("  1. Product Research Crew (输入 r)")
         print("  2. VisualDNA to Listing Crew (输入 g)")
-        choice = input("请输入选择 (r/g): ").strip().lower()
+        print("  3. Refined ResourceKit to Listing Crew (输入 f)")
+        choice = input("请输入选择 (r/g/f): ").strip().lower()
         if choice == "r":
             print("Running product research crew...")
             result = run_productresearchcrew()
         elif choice == "g":
             print("Running visualdna to listing crew...")
             result = run_visualdnatolistingcrew()
+        elif choice == "f":
+            print("Running refined resourcekit to listing crew...")
+            result = run_refindedresourcekittolistingcrew()
         else:
-            print("无效选择，请输入 r 或 g")
+            print("无效选择，请输入 r、g 或 f")
             sys.exit(1)
     
     print("Result:", result)

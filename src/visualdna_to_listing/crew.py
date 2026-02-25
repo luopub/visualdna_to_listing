@@ -222,3 +222,19 @@ class VisualdnaToListing():
             process=Process.sequential,
             verbose=True,
         )
+
+    @crew
+    def refinded_resourcekit_to_listing_crew(self) -> Crew:
+        """Creates the VisualdnaToListing crew"""
+        # To learn how to add knowledge sources to your crew, check out the documentation:
+        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
+
+        return Crew(
+            # agents=self.agents, # Automatically created by the @agent decorator
+            agents=[self.visual_dna_architect(), self.creative_prompt_engineer(), self.image_production_specialist()],
+            # tasks=self.tasks, # Automatically created by the @task decorator
+            tasks=[self.define_visual_dna_task(), self.plan_and_write_prompts_task(), self.image_prompts_review_task(), self.generate_listing_images_task()],
+            # tasks=[*self.tasks[2:]],  #, self.define_visual_dna_task, self.plan_and_write_prompts_task, self.generate_listing_images_task],
+            process=Process.sequential,
+            verbose=True,
+        )
