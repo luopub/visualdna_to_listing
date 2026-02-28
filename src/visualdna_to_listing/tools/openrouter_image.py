@@ -1,5 +1,7 @@
 import base64
 import os
+import re
+from datetime import datetime
 from typing import Optional, Union
 
 from openai import OpenAI
@@ -51,6 +53,64 @@ def _load_image_as_url(image_path_or_url: str) -> str:
 
     base64_data = base64.b64encode(image_data).decode("utf-8")
     return f"data:{mime_type};base64,{base64_data}"
+
+
+def save_image_from_url(data_url: str, output_dir: str, filename: Optional[str] = None) -> str:
+    """
+    将 data URL 保存为图片文件
+
+    Args:
+        data_url: data URL 或普通 URL
+        output_dir: 输出目录
+        filename: 文件名（不含扩展名），默认使用时间戳
+
+    Returns:
+        保存的文件路径
+    """
+    os.makedirs(output_dir, exist_ok=True)
+
+    if data_url.startswith("data:"):
+        # 解析 data URL
+        match = re.match(r"data:image/(\w+);base64,(.+)", data_url)
+        if match:
+            ext = match.group(1)
+            if ext == "jpeg":
+                ext = "jpg"
+            base64_data = match.group(2)
+            image_data = base64.b64decode(base64_data)
+        else:
+            raise ValueError(f"Invalid data URL format")
+    else:
+        # 普通 URL，下载图片
+        import urllib.request
+
+        ext = "jpg"
+        with urllib.request.urlopen(data_url) as response:
+            image_data = response.read()
+        # 尝试从 Content-Type 获取扩展名
+        content_type = response.headers.get("Content-Type", "")
+        if "png" in content_type:
+            ext = "png"
+        elif "webp" in content_type:
+            ext = "webp"
+        elif "gif" in content_type:
+            ext = "gif"
+
+    if filename is None:
+        filename = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    filepath = os.path.join(output_dir, f"{filename}.{ext}")
+
+    # 避免文件名冲突
+    counter = 1
+    while os.path.exists(filepath):
+        filepath = os.path.join(output_dir, f"{filename}_{counter}.{ext}")
+        counter += 1
+
+    with open(filepath, "wb") as f:
+        f.write(image_data)
+
+    return filepath
 
 
 def generate_image(
@@ -119,9 +179,15 @@ if __name__ == "__main__":
     #     print("未生成图片")
 
     # 测试2: 带参考图片 (取消注释以测试)
-    test_image = "path/to/your/image.jpg"  # 本地路径或 URL
-    urls = generate_image("根据参考图片生成一个变体", images=test_image)
+    test_image = r"D:\ps-workspace\temu\其它包\成品图\儿童豆袋椅收纳包-水滴-灰色星星\英语\儿童-sku-2.jpg"  # 本地路径或 URL
+    prompt = """Create a product image with following requirement. Product Core: Full grey crystal velvet bean bag cover in teardrop geometry with deep curved side bolsters, white five-pointed star pattern with subtle pink gradient visible, child sitting on bean bag (back-of-head only, age-labeled "Recommended for ages 8-12"), smartphone placed next to bean bag as universal size reference, standard throw pillow beside it for volume comparison, measurement tape draped showing actual dimensions for Large size. Material Specs: 100% polyester super soft crystal velvet with plush surface matching the exact texture and color accuracy from reference, heavy-duty zipper visible at seam junction, double-stitched construction evident. Perspective: Wide shot, eye-level camera angle, full bean bag in frame with multiple scale references, even shadow-free lighting to show true dimensions without perspective distortion. Environment: Real bedroom setting with lived-in appearance, not perfectly staged, warm 3000-3500K lighting, stuffed animals partially visible showing storage function. Quality Tags: Photorealistic, true-to-scale representation, NO extra accessories, NO text overlays on image, addresses 18% sizing confusion complaint, weight capacity demonstrated, sRGB color profile, minimum 2000px resolution."""
+    urls = generate_image(prompt, images=test_image)
+
+    output_dir = r"d:\temp"
     if urls:
         print(f"成功生成 {len(urls)} 张图片 (带参考图):")
         for i, url in enumerate(urls, 1):
-            print(f"  图片 {i}: {url[:80]}...")
+            filepath = save_image_from_url(url, output_dir, f"generated_{i}")
+            print(f"  图片 {i} 已保存: {filepath}")
+    else:
+        print("未生成图片")
