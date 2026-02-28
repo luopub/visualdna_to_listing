@@ -72,33 +72,21 @@ define_visual_dna_task:
 
 plan_and_write_prompts_task:
   description: |
-    1. Visual DNA Cloning: Develop 10 high-fidelity image generation prompts from refined resource kit and Visual DNA Specification. The core objective is to create a "Digital Twin" of the product shown in the reference photos.
-    2. Structural Integrity (MANDATORY): You must treat the reference photos (e.g., `simulate-1.png`) as the **absolute blueprint**. The generated prompts must explicitly describe the product's geometry, silhouette, and component placement (e.g., zipper position, handle shape) to ensure NO extra parts or structural modifications are hallucinated.
-    3. Material & Texture Mapping:
-      - Link every 'Raw Material' from resource_kit_refined.md directly to a visual feature in a reference photo.
-      - Use sensory language to describe textures: "the exact matte finish of the 1000D nylon as seen in [path]", "the heavy-duty metallic sheen of the large-gauge zipper".
-    4. Data-Driven Detail: Incorporate 'Basic Product Facts' (e.g., dual-purpose storage, 300L capacity) not just as text, but as visual scale and volume cues.
-    5. Contextual Logic:
-      - Use the 'Scenario Context' table for background settings.
-      - Ensure the background never interferes with the product's structural clarity.
-    6. Anxiety-Driven Perspectives: Use "Composition Perspectives" (1-6) to debunk customer fears by showing close-up structural integrity and real-world durability.
-    7. Technical Constraints:
-      - No additional decorations or components not present in reference photos.
-      - All on-image text must be in English.
-      - First prompt must be a "Hero Shot" (The Master Product Visual).
+    1. Develop 10 detailed image generation prompts based on content of file resource_kit_refined.md and visual_dna_specification.
+    2. MANDATORY DATA INTEGRATION: Each prompt must incorporate specific details from the 'Basic Product Facts' (e.g., Dual-purpose storage, double-stitching).
+    3. MATERIAL FIDELITY: Every prompt must reference the physical file paths (e.g., simulate-1.png) and describe the textures found in the 'Raw Materials' section (e.g., large-gauge zipper, 300L capacity).
+    4. SCENARIO ALIGNMENT: Use the 'Scenario Context' table to build the 10-image set, specifically focusing on Scenarios.
+    5. ANXIETY DEBUNKING: Implement the "Composition Perspectives" (1-6) to address customer fears.
+    6. The prompts must follow the referenced reference photos in terms of visual characteristics and details. Do not add additional parts onto the reference photos.
+    7. At least one reference photos must be selected and explicitly referenced in the prompts to ensure the generated images reflect the real outlook and qualities of the product.
+    8. Any text that will be shown on the image must be in English.
+    9. First prompt must be a "Hero Shot" that focuses on the most important product USPs.
   expected_output: |
-    A structured list of 10 prompts. Each prompt must follow this strict schema to ensure model compliance:
-      - Reference Image Paths: At least one reference photo path (absolute path to the image file from the resource kit).
-      - Scene Name: (e.g., The Honest Hero Shot)
-      - Primary Reference Path: (e.g., `simulate-1.png`)
-      - Structural Anchor: (A one-sentence instruction for the AI to freeze the product's shape, e.g., "Maintain the exact hexagonal silhouette and double-stitched seams from the reference.")
-      - The Final Prompt: [A dense, technical prompt string including:
-        1. Product Core: Exact replica of one of the reference photos;
-        2. Material Specs: <Specific Texture> + <Raw Material>;
-        3. Perspective: <Composition Perspective>;
-        4. Environment: <Scenario>;
-        5. Quality Tags: Photorealistic, industrial design fidelity, NO extra accessories.]
-      - Aspect Ratio: 1:1
+    A list of 10 structured prompts. Each prompt must include: 
+    - Scene Name (e.g., The Honest Hero Shot)
+    - Reference Image Paths (One or more, selected from Resource Kit reference photos list)
+    - Detailed description of product USPs
+    - Targeted Aspect Ratio 1:1.
   agent: creative_prompt_engineer
 
 image_prompts_review_task:

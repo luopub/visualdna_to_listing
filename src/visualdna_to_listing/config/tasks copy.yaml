@@ -71,11 +71,11 @@ define_visual_dna_task:
   agent: visual_dna_architect
 
 plan_and_write_prompts_task:
-  description: |
-    1. Visual DNA Cloning: Develop 10 high-fidelity image generation prompts from refined resource kit and Visual DNA Specification. The core objective is to create a "Digital Twin" of the product shown in the reference photos.
+  Description: |
+    1. Visual DNA Cloning: Develop 10 high-fidelity image generation prompts. The core objective is to create a "Digital Twin" of the product shown in the reference photos.
     2. Structural Integrity (MANDATORY): You must treat the reference photos (e.g., `simulate-1.png`) as the **absolute blueprint**. The generated prompts must explicitly describe the product's geometry, silhouette, and component placement (e.g., zipper position, handle shape) to ensure NO extra parts or structural modifications are hallucinated.
     3. Material & Texture Mapping:
-      - Link every 'Raw Material' from resource_kit_refined.md directly to a visual feature in a reference photo.
+      - Link every 'Raw Material' from `resource_kit_refined.md` directly to a visual feature in a reference photo.
       - Use sensory language to describe textures: "the exact matte finish of the 1000D nylon as seen in [path]", "the heavy-duty metallic sheen of the large-gauge zipper".
     4. Data-Driven Detail: Incorporate 'Basic Product Facts' (e.g., dual-purpose storage, 300L capacity) not just as text, but as visual scale and volume cues.
     5. Contextual Logic:
@@ -86,7 +86,7 @@ plan_and_write_prompts_task:
       - No additional decorations or components not present in reference photos.
       - All on-image text must be in English.
       - First prompt must be a "Hero Shot" (The Master Product Visual).
-  expected_output: |
+  Expected Output: |
     A structured list of 10 prompts. Each prompt must follow this strict schema to ensure model compliance:
       - Reference Image Paths: At least one reference photo path (absolute path to the image file from the resource kit).
       - Scene Name: (e.g., The Honest Hero Shot)
@@ -99,7 +99,7 @@ plan_and_write_prompts_task:
         4. Environment: <Scenario>;
         5. Quality Tags: Photorealistic, industrial design fidelity, NO extra accessories.]
       - Aspect Ratio: 1:1
-  agent: creative_prompt_engineer
+  Agent: creative_prompt_engineer
 
 image_prompts_review_task:
   description: |
