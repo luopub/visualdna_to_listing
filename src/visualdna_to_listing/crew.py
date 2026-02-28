@@ -6,7 +6,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai.tools import tool
-from .tools.custom_tool import HunyuanImageTool, UserInputTool, GetImageDescTool
+from .tools.custom_tool import HunyuanImageTool, UserInputTool, GetImageDescTool, OpenRouterImageTool
 import httpx
 from crewai.llms.hooks import BaseInterceptor
 from .tools.my_file_read_tool import MyFileReadTool as FileReadTool
@@ -15,7 +15,8 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 search_tool = SerperDevTool()
 scrape_tool = ScrapeWebsiteTool()
 file_read_tool = FileReadTool(encoding="utf-8")  # Example of initializing the file read tool with UTF-8 encoding
-image_generator_tool = HunyuanImageTool()
+# image_generator_tool = HunyuanImageTool()
+image_generator_tool = OpenRouterImageTool()
 user_input_tool = UserInputTool()
 get_image_desc_tool = GetImageDescTool()
 
