@@ -86,8 +86,7 @@ plan_and_write_prompts_task:
       - No additional decorations or components not present in reference photos.
       - All on-image text must be in English.
       - First prompt must be a "Hero Shot" (The Master Product Visual).
-  expected_output: |
-    A structured list of 10 prompts. Each prompt must follow this strict schema to ensure model compliance:
+    8. Each image generation prompt must follow this strict schema to ensure model compliance:
       - Reference Image Paths: At least one reference photo path (absolute path to the image file from the resource kit).
       - Scene Name: (e.g., The Honest Hero Shot)
       - Primary Reference Path: (e.g., `simulate-1.png`)
@@ -99,6 +98,9 @@ plan_and_write_prompts_task:
         4. Environment: <Scenario>;
         5. Quality Tags: Photorealistic, industrial design fidelity, NO extra accessories.]
       - Aspect Ratio: 1:1
+      - Image Size: 1024x1024 or 1K
+  expected_output: |
+    A structured list of 10 prompts. 
   agent: creative_prompt_engineer
 
 image_prompts_review_task:

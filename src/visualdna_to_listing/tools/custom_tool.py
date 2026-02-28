@@ -29,11 +29,11 @@ class UserInputTool(BaseTool):
         return user_input
 
 
-class HunyuanImageToolInput(BaseModel):
-    """Input schema for HunyuanImageTool."""
-    prompt: str = Field(..., description="Text description for the image to generate. Chinese is recommended. Max 8192 characters.")
+class ImageToolInput(BaseModel):
+    """Input schema for image generation tools."""
+    prompt: str = Field(..., description="Text description for the image to generate.")
     resolution: str = Field(default="1024:1024", description="Image resolution in 'width:height' format. Default is 1024:1024.")
-    reference_images: Optional[List[str]] = Field(default=None, description="Reference image URLs for image-to-image generation. Max 3 images. Supports http/https URLs or local file paths.")
+    reference_images: Optional[List[str]] = Field(default=None, description="Reference image URLs for image-to-image generation. Supports http/https URLs or local file paths.")
     saved_images: Optional[List[str]] = Field(default=None, description="Filename list for saving generated images. If provided, images will be saved to 'generated_images' directory with these names.")
 
 
@@ -48,22 +48,27 @@ class HunyuanImageTool(BaseTool):
         "If saved_images is provided, images will be saved to 'generated_images' directory; "
         "otherwise returns the URLs of generated images."
     )
-    args_schema: Type[BaseModel] = HunyuanImageToolInput
+    args_schema: Type[BaseModel] = ImageToolInput
 
     def _run(self, prompt: str, resolution: str = "1024:1024", reference_images: list[str] | None=None, saved_images: list[str] | None=None) -> str:
         import requests
         from pathlib import Path
-        from .hunyuan_image import HunyuanImageClient
+        try:
+            from .hunyuan_image import HunyuanImageClient
+        except ImportError:
+            from hunyuan_image import HunyuanImageClient
         import json
 
         # QWEN3.5 plus call tools with string parameters
         if reference_images:
-            reference_images = json.loads(reference_images)
+            if isinstance(reference_images, str):
+                reference_images = json.loads(reference_images)
         else:
             reference_images = []
 
         if saved_images:
-            saved_images = json.loads(saved_images)
+            if isinstance(saved_images, str):
+                saved_images = json.loads(saved_images)
         else:
             saved_images = []
 
@@ -106,6 +111,125 @@ class HunyuanImageTool(BaseTool):
                     return f"{urls_str}"
             else:
                 return "Image generation completed but no image URLs were returned."
+
+        except Exception as e:
+            return f"Image generation error: {str(e)}"
+
+
+class OpenRouterImageTool(BaseTool):
+    """OpenRouter text-to-image tool for generating images from text descriptions."""
+    name: str = "openrouter_image_generator"
+    description: str = (
+        "Generate images using OpenRouter AI models (e.g., Gemini). "
+        "Input a text description (prompt) to generate corresponding images. "
+        "Optionally specify resolution (resolution), reference images (reference_images), "
+        "and filenames for saving (saved_images). "
+        "If saved_images is provided, images will be saved to 'generated_images' directory; "
+        "otherwise returns the data URLs of generated images."
+    )
+    args_schema: Type[BaseModel] = ImageToolInput
+
+    def _run(self, prompt: str, resolution: str = "1024:1024", reference_images: list[str] | None = None, saved_images: list[str] | None = None) -> str:
+        from pathlib import Path
+        try:
+            from .openrouter_image import OpenRouterImageClient, save_image_from_url
+        except ImportError:
+            from openrouter_image import OpenRouterImageClient, save_image_from_url
+        import json
+
+        # QWEN3.5 plus call tools with string parameters
+        if reference_images:
+            if isinstance(reference_images, str):
+                reference_images = json.loads(reference_images)
+        else:
+            reference_images = []
+
+        if saved_images:
+            if isinstance(saved_images, str):
+                saved_images = json.loads(saved_images)
+        else:
+            saved_images = []
+
+        # Convert resolution (width:height) to aspect ratio
+        def resolution_to_aspect_ratio(res: str) -> str | None:
+            try:
+                width, height = map(int, res.split(':'))
+                # Simplify to common aspect ratios
+                from math import gcd
+                g = gcd(width, height)
+                w, h = width // g, height // g
+                # Map to supported aspect ratios
+                ratio_map = {
+                    (1, 1): "1:1",
+                    (1, 4): "1:4",
+                    (1, 8): "1:8",
+                    (2, 3): "2:3",
+                    (3, 2): "3:2",
+                    (3, 4): "3:4",
+                    (4, 1): "4:1",
+                    (4, 3): "4:3",
+                    (4, 5): "4:5",
+                    (5, 4): "5:4",
+                    (8, 1): "8:1",
+                    (9, 16): "9:16",
+                    (16, 9): "16:9",
+                    (21, 9): "21:9",
+                }
+                return ratio_map.get((w, h), "1:1")
+            except:
+                return "1:1"
+
+        aspect_ratio = resolution_to_aspect_ratio(resolution)
+        # Determine image size based on resolution
+        def resolution_to_image_size(res: str) -> str:
+            try:
+                width, height = map(int, res.split(':'))
+                max_dim = max(width, height)
+                if max_dim <= 512:
+                    return "512px"
+                elif max_dim <= 1024:
+                    return "1K"
+                elif max_dim <= 2048:
+                    return "2K"
+                else:
+                    return "4K"
+            except:
+                return "2K"
+
+        image_size = resolution_to_image_size(resolution)
+
+        try:
+            image_urls = OpenRouterImageClient.generate_image(
+                prompt=prompt,
+                images=reference_images if reference_images else None,
+                aspect_ratio=aspect_ratio,
+                image_size=image_size,
+            )
+
+            if not image_urls:
+                return "Image generation completed but no images were returned."
+
+            if saved_images:
+                # Create output directory
+                output_dir = Path("generated_images")
+                output_dir.mkdir(exist_ok=True)
+
+                saved_paths = []
+                for url, filename in zip(image_urls, saved_images):
+                    filepath = save_image_from_url(url, str(output_dir), filename)
+                    saved_paths.append(filepath)
+
+                    # Save prompt with the same name (.txt)
+                    prompt_path = Path(filepath).with_suffix('.txt')
+                    content = 'Reference Images:\n' + ('\n'.join(reference_images) if reference_images else 'None')
+                    content += '\n' + 'Prompt:\n' + prompt
+                    prompt_path.write_text(content, encoding='utf-8')
+
+                paths_str = "\n".join(saved_paths)
+                return f"{paths_str}"
+            else:
+                urls_str = "\n".join(image_urls)
+                return f"{urls_str}"
 
         except Exception as e:
             return f"Image generation error: {str(e)}"
@@ -214,51 +338,89 @@ Summarize the final description in a clear and concise manner in less than 100 w
 
 if __name__ == "__main__":
     # ========== Test GetImageDescTool ==========
-    print("=" * 50)
-    print("GetImageDescTool Test")
+    # print("=" * 50)
+    # print("GetImageDescTool Test")
+    # print("=" * 50)
+
+    # # Check if API key is set
+    # if not os.environ.get("DASHSCOPE_API_KEY"):
+    #     print("Error: DASHSCOPE_API_KEY environment variable is not set.")
+    #     print("Please set it before running the test:")
+    #     print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
+    #     print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
+    #     exit(1)
+
+    # tool = GetImageDescTool()
+
+    # # Test 1: Analyze a local image file
+    # print("\n--- Test 1: Local Image File ---")
+    # test_image = input("Enter path to a test image file (or press Enter to skip): ").strip()
+    # if test_image:
+    #     print(f"\nAnalyzing: {test_image}")
+    #     result = tool._run(image_source=test_image)
+    #     print(f"\nResult:\n{result}")
+    # else:
+    #     print("Skipped local file test.")
+
+    # # Test 2: Analyze an image URL
+    # print("\n--- Test 2: Image URL ---")
+    # test_url = input("Enter an image URL (or press Enter to skip): ").strip()
+    # if test_url:
+    #     print(f"\nAnalyzing: {test_url}")
+    #     result = tool._run(image_source=test_url)
+    #     print(f"\nResult:\n{result}")
+    # else:
+    #     print("Skipped URL test.")
+
+    # # Test 3: Analyze with focus aspect
+    # print("\n--- Test 3: With Focus Aspect ---")
+    # if test_image or test_url:
+    #     source = test_image or test_url
+    #     focus = input("Enter focus aspect (e.g., 'colors', 'style', or press Enter to skip): ").strip()
+    #     if focus:
+    #         print(f"\nAnalyzing with focus on '{focus}': {source}")
+    #         result = tool._run(image_source=source, focus_aspect=focus)
+    #         print(f"\nResult:\n{result}")
+    # else:
+    #     print("Skipped focus aspect test (no image provided).")
+
+    # ========== Test OpenRouterImageTool ==========
+    print("\n" + "=" * 50)
+    print("OpenRouterImageTool Test")
     print("=" * 50)
 
-    # Check if API key is set
-    if not os.environ.get("DASHSCOPE_API_KEY"):
-        print("Error: DASHSCOPE_API_KEY environment variable is not set.")
+    if not os.environ.get("OPENROUTER_IMGEN_API_KEY"):
+        print("Error: OPENROUTER_IMGEN_API_KEY environment variable is not set.")
         print("Please set it before running the test:")
-        print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
-        print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
-        exit(1)
+        print("  Windows: set OPENROUTER_IMGEN_API_KEY=your-api-key")
+        print("  Linux/Mac: export OPENROUTER_IMGEN_API_KEY=your-api-key")
+    else:
+        img_tool = OpenRouterImageTool()
 
-    tool = GetImageDescTool()
+        # Test with reference images
+        print("\n--- Test: Generate Image with Reference Images ---")
+        ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
+        if ref_images:
+            ref_list = [p.strip() for p in ref_images.split(",")]
+        else:
+            ref_list = []
 
-    # Test 1: Analyze a local image file
-    print("\n--- Test 1: Local Image File ---")
-    test_image = input("Enter path to a test image file (or press Enter to skip): ").strip()
-    if test_image:
-        print(f"\nAnalyzing: {test_image}")
-        result = tool._run(image_source=test_image)
+        gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
+        if not gen_prompt:
+            gen_prompt = "A beautiful product photo with clean background"
+
+        print(f"\nGenerating image...")
+        print(f"  Prompt: {gen_prompt[:80]}...")
+        if ref_list:
+            print(f"  Reference images: {len(ref_list)}")
+
+        result = img_tool._run(
+            prompt=gen_prompt,
+            resolution="1024:1024",
+            reference_images=ref_list if ref_list else None,
+            saved_images=["test_output"]
+        )
         print(f"\nResult:\n{result}")
-    else:
-        print("Skipped local file test.")
-
-    # Test 2: Analyze an image URL
-    print("\n--- Test 2: Image URL ---")
-    test_url = input("Enter an image URL (or press Enter to skip): ").strip()
-    if test_url:
-        print(f"\nAnalyzing: {test_url}")
-        result = tool._run(image_source=test_url)
-        print(f"\nResult:\n{result}")
-    else:
-        print("Skipped URL test.")
-
-    # Test 3: Analyze with focus aspect
-    print("\n--- Test 3: With Focus Aspect ---")
-    if test_image or test_url:
-        source = test_image or test_url
-        focus = input("Enter focus aspect (e.g., 'colors', 'style', or press Enter to skip): ").strip()
-        if focus:
-            print(f"\nAnalyzing with focus on '{focus}': {source}")
-            result = tool._run(image_source=source, focus_aspect=focus)
-            print(f"\nResult:\n{result}")
-    else:
-        print("Skipped focus aspect test (no image provided).")
 
     print("\n" + "=" * 50)
     print("Test completed")
