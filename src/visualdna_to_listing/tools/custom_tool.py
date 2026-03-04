@@ -6,7 +6,12 @@ from typing import Type, Optional, List
 from pydantic import BaseModel, Field
 import base64
 from pathlib import Path
+import winsound
 
+try:
+    from .utils import save_image_from_url
+except ImportError:
+    from utils import save_image_from_url
 
 class UserInputToolInput(BaseModel):
     """Input schema for UserInputTool."""
@@ -24,6 +29,7 @@ class UserInputTool(BaseTool):
     args_schema: Type[BaseModel] = UserInputToolInput
 
     def _run(self, prompt_message: str) -> str:
+        winsound.Beep(1000, 500)  # Beep to alert user for input
         print(f"\n{prompt_message}")
         user_input = input("> ")
         return user_input
@@ -91,12 +97,13 @@ class HunyuanImageTool(BaseTool):
                     saved_paths = []
                     for url, filename in zip(result.image_urls, saved_images):
                         # Download and save image
-                        response = requests.get(url, timeout=30)
-                        response.raise_for_status()
+                        # response = requests.get(url, timeout=30)
+                        # response.raise_for_status()
 
                         file_path = output_dir / filename
-                        file_path.write_bytes(response.content)
-                        saved_paths.append(str(file_path))
+                        # file_path.write_bytes(response.content)
+                        # saved_paths.append(str(file_path))
+                        save_image_from_url(url, str(output_dir), filename)
 
                         # Save prompt with the same name (.txt)
                         prompt_path = file_path.with_suffix('.txt')
@@ -385,42 +392,78 @@ if __name__ == "__main__":
     #     print("Skipped focus aspect test (no image provided).")
 
     # ========== Test OpenRouterImageTool ==========
+    # print("\n" + "=" * 50)
+    # print("OpenRouterImageTool Test")
+    # print("=" * 50)
+
+    # if not os.environ.get("OPENROUTER_IMGEN_API_KEY"):
+    #     print("Error: OPENROUTER_IMGEN_API_KEY environment variable is not set.")
+    #     print("Please set it before running the test:")
+    #     print("  Windows: set OPENROUTER_IMGEN_API_KEY=your-api-key")
+    #     print("  Linux/Mac: export OPENROUTER_IMGEN_API_KEY=your-api-key")
+    # else:
+    #     img_tool = OpenRouterImageTool()
+
+    #     # Test with reference images
+    #     print("\n--- Test: Generate Image with Reference Images ---")
+    #     ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
+    #     if ref_images:
+    #         ref_list = [p.strip() for p in ref_images.split(",")]
+    #     else:
+    #         ref_list = []
+
+    #     gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
+    #     if not gen_prompt:
+    #         gen_prompt = "A beautiful product photo with clean background"
+
+    #     print(f"\nGenerating image...")
+    #     print(f"  Prompt: {gen_prompt[:80]}...")
+    #     if ref_list:
+    #         print(f"  Reference images: {len(ref_list)}")
+
+    #     result = img_tool._run(
+    #         prompt=gen_prompt,
+    #         resolution="1024:1024",
+    #         reference_images=ref_list if ref_list else None,
+    #         saved_images=["test_output"]
+    #     )
+    #     print(f"\nResult:\n{result}")
+
+    # print("\n" + "=" * 50)
+    # print("Test completed")
+    # print("=" * 50)
+
+    # ========== Test HunyuanImageTool ==========
     print("\n" + "=" * 50)
-    print("OpenRouterImageTool Test")
+    print("HunyuanImageTool Test")
     print("=" * 50)
 
-    if not os.environ.get("OPENROUTER_IMGEN_API_KEY"):
-        print("Error: OPENROUTER_IMGEN_API_KEY environment variable is not set.")
-        print("Please set it before running the test:")
-        print("  Windows: set OPENROUTER_IMGEN_API_KEY=your-api-key")
-        print("  Linux/Mac: export OPENROUTER_IMGEN_API_KEY=your-api-key")
+    hunyuan_tool = HunyuanImageTool()
+
+    # Test with reference images
+    print("\n--- Test: Generate Image with Reference Images ---")
+    ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
+    if ref_images:
+        ref_list = [p.strip() for p in ref_images.split(",")]
     else:
-        img_tool = OpenRouterImageTool()
+        ref_list = []
 
-        # Test with reference images
-        print("\n--- Test: Generate Image with Reference Images ---")
-        ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
-        if ref_images:
-            ref_list = [p.strip() for p in ref_images.split(",")]
-        else:
-            ref_list = []
+    gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
+    if not gen_prompt:
+        gen_prompt = "A beautiful product photo with clean background"
 
-        gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
-        if not gen_prompt:
-            gen_prompt = "A beautiful product photo with clean background"
+    print(f"\nGenerating image...")
+    print(f"  Prompt: {gen_prompt[:80]}...")
+    if ref_list:
+        print(f"  Reference images: {len(ref_list)}")
 
-        print(f"\nGenerating image...")
-        print(f"  Prompt: {gen_prompt[:80]}...")
-        if ref_list:
-            print(f"  Reference images: {len(ref_list)}")
-
-        result = img_tool._run(
-            prompt=gen_prompt,
-            resolution="1024:1024",
-            reference_images=ref_list if ref_list else None,
-            saved_images=["test_output"]
-        )
-        print(f"\nResult:\n{result}")
+    result = hunyuan_tool._run(
+        prompt=gen_prompt,
+        resolution="1024:1024",
+        reference_images=ref_list if ref_list else None,
+        saved_images=["test_output_hunyuan"]
+    )
+    print(f"\nResult:\n{result}")
 
     print("\n" + "=" * 50)
     print("Test completed")
