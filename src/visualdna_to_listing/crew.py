@@ -15,8 +15,8 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 search_tool = SerperDevTool()
 scrape_tool = ScrapeWebsiteTool()
 file_read_tool = FileReadTool(encoding="utf-8")  # Example of initializing the file read tool with UTF-8 encoding
-# image_generator_tool = HunyuanImageTool()
-image_generator_tool = OpenRouterImageTool()
+image_generator_tool = HunyuanImageTool()
+# image_generator_tool = OpenRouterImageTool()
 user_input_tool = UserInputTool()
 get_image_desc_tool = GetImageDescTool()
 

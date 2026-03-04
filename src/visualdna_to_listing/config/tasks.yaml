@@ -2,7 +2,7 @@ market_intelligence_task:
   description: |
     Start by prompting the user to input a product name with tool user_input_tool.
     Then, ask user to input some key information about the product, such as its price point, target audience, and competitors.
-    Conduct an in-depth search for the product on Amazon, Walmart, and relevant tech/lifestyle review blogs. 
+    Conduct an in-depth search for the product on Amazon, Walmart, and relevant tech/lifestyle review blogs. Target market region are North America, EU, AU, JP, UK and KR.
     1. Identify the top 3 competitors and their core Unique Selling Propositions (USPs).
     2. Extract at least 10 authentic user scenarios (e.g., "using the lamp at 2 AM for coding").
     3. List the top 5 recurring complaints or anxieties mentioned by buyers.
