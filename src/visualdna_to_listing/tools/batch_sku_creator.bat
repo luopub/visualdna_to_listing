@@ -19,9 +19,40 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Prompt user for product name
+set /p PRODUCT_NAME="Enter product name (-p): "
+if "!PRODUCT_NAME!"=="" (
+    echo Error: Product name cannot be empty
+    pause
+    exit /b 1
+)
+
+REM Prompt user for background style
+set /p BG_STYLE="Enter background style (-b): "
+if "!BG_STYLE!"=="" (
+    echo Error: Background style cannot be empty
+    pause
+    exit /b 1
+)
+
+REM Check SKU file parameter
+set "SKU_FILE=sku_list.txt"
+if not exist "%SCRIPT_DIR%!SKU_FILE!" (
+    echo Error: SKU file not found: %SCRIPT_DIR%!SKU_FILE!
+    echo Please ensure sku_list.txt exists in the script directory
+    pause
+    exit /b 1
+)
+
+echo.
+echo Product name: !PRODUCT_NAME!
+echo Background style: !BG_STYLE!
+echo SKU file: !SKU_FILE!
+echo.
+
 REM Run the batch creator
 cd /d "%SCRIPT_DIR%"
-python "%PYTHON_SCRIPT%" -p "phone bag for women" -b model_female_studio -f sku_list.txt
+python "%PYTHON_SCRIPT%" -p "!PRODUCT_NAME!" -b "!BG_STYLE!" -f "!SKU_FILE!"
 
 echo.
 echo Done!
