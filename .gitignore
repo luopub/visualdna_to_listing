@@ -5,3 +5,4 @@ resource_kit_*.md
 generated_images/
 llm_log*.json
 logs/
+sku_list.txt
