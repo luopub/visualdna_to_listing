@@ -117,8 +117,10 @@ class HunyuanImageClient:
         
         # 导入上传模块
         import sys
-        sys.path.append(str(Path(__file__).parent))
-        from image_uploader import upload_image
+        try:
+            from .image_uploader import upload_image
+        except ImportError:
+            from image_uploader import upload_image
         
         # 使用 SM.MS 上传（免费，无需配置）
         result = upload_image(file_path, method="cos", cos_config={
