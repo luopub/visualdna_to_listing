@@ -50,12 +50,18 @@ def save_image_from_url(data_url: str, output_dir: str, filename: Optional[str] 
     if filename is None:
         filename = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    filepath = os.path.join(output_dir, f"{filename}.{ext}")
+    # 检查 filename 是否已包含正确的扩展名
+    if filename.lower().endswith(f".{ext}") or filename.lower().endswith(f".{ext.lower()}"):
+        base_name = filename.rsplit(".", 1)[0]  # 移除已有扩展名
+        filepath = os.path.join(output_dir, filename)
+    else:
+        base_name = filename
+        filepath = os.path.join(output_dir, f"{filename}.{ext}")
 
     # 避免文件名冲突
     counter = 1
     while os.path.exists(filepath):
-        filepath = os.path.join(output_dir, f"{filename}_{counter}.{ext}")
+        filepath = os.path.join(output_dir, f"{base_name}_{counter}.{ext}")
         counter += 1
 
     with open(filepath, "wb") as f:

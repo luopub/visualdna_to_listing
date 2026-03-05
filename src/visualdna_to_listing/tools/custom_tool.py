@@ -29,7 +29,7 @@ class UserInputTool(BaseTool):
     args_schema: Type[BaseModel] = UserInputToolInput
 
     def _run(self, prompt_message: str) -> str:
-        winsound.Beep(1000, 500)  # Beep to alert user for input
+        winsound.Beep(1000, 2000)  # Beep to alert user for input
         print(f"\n{prompt_message}")
         user_input = input("> ")
         return user_input
