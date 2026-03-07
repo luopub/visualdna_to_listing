@@ -98,10 +98,11 @@ class SKUCreator:
         Returns:
             Background prompt with product name
         """
+        unchanged = "Keep the product unchanged."
         if background_key and background_key in BACKGROUND_TEMPLATES:
-            template = BACKGROUND_TEMPLATES[background_key]
+            template = BACKGROUND_TEMPLATES[background_key] + '. ' + unchanged
         else:
-            template = BACKGROUND_TEMPLATES["studio_white"]
+            template = BACKGROUND_TEMPLATES["studio_white"] + '. ' + unchanged
 
         return template.replace("{product}", product_name)
 

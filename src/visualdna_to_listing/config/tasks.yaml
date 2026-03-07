@@ -87,7 +87,7 @@ plan_and_write_prompts_task:
       - All on-image text must be in English.
       - First prompt must be a "Hero Shot" (The Master Product Visual).
     8. Each image generation prompt must follow this strict schema to ensure model compliance:
-      - Reference Image Paths: At least one reference photo path (absolute path to the image file from the resource kit).
+      - Reference Image Paths: At least one but max three reference photo paths (absolute path to the image file from the resource kit).
       - Scene Name: (e.g., The Honest Hero Shot)
       - Primary Reference Path: (e.g., `simulate-1.png`)
       - Structural Anchor: (A one-sentence instruction for the AI to freeze the product's shape, e.g., "Maintain the exact hexagonal silhouette and double-stitched seams from the reference.")
@@ -106,7 +106,7 @@ plan_and_write_prompts_task:
 image_prompts_review_task:
   description: |
     Review the 10 prompts produced in the previous task. Ensure each prompt is well-structured and references at least one reference photo.
-    - If a prompt is missing a reference image, load file resource_kit_refined.md to find one or more suitable reference photos.
+    - If a prompt is missing a reference image, load file resource_kit_refined.md to find one to three suitable reference photos.
     If all prompts are well-structured, approve them for image generation without change.
     Do not modify the prompts text.
   expected_output: |
