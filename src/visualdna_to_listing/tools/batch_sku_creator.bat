@@ -35,6 +35,10 @@ if "!BG_STYLE!"=="" (
     exit /b 1
 )
 
+REM Prompt user for count
+set /p COUNT="Enter count (-c) [default: 1]: "
+if "!COUNT!"=="" set "COUNT=1"
+
 REM Check SKU file parameter
 set "SKU_FILE=sku_list.txt"
 if not exist "%SCRIPT_DIR%!SKU_FILE!" (
@@ -47,12 +51,13 @@ if not exist "%SCRIPT_DIR%!SKU_FILE!" (
 echo.
 echo Product name: !PRODUCT_NAME!
 echo Background style: !BG_STYLE!
+echo Count: !COUNT!
 echo SKU file: !SKU_FILE!
 echo.
 
 REM Run the batch creator
 cd /d "%SCRIPT_DIR%"
-python "%PYTHON_SCRIPT%" -p "!PRODUCT_NAME!" -b "!BG_STYLE!" -f "!SKU_FILE!"
+python "%PYTHON_SCRIPT%" -p "!PRODUCT_NAME!" -b "!BG_STYLE!" -c !COUNT! -f "!SKU_FILE!"
 
 echo.
 echo Done!

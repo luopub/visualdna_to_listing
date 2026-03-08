@@ -206,7 +206,8 @@ def main():
     parser.add_argument("--product", "-p", default=None, help="Product name")
     parser.add_argument("--background", "-b", default=None, help="Background template or custom description")
     parser.add_argument("--output", "-o", default=None, help="Output directory")
-    parser.add_argument("--file", "-f", default=None, help="File containing SKU list (one per line: SKU_NAME IMAGE_PATH [COUNT])")
+    parser.add_argument("--file", "-f", default=None, help="File containing image paths (one per line)")
+    parser.add_argument("--count", "-c", type=int, default=1, help="Number of images to generate per SKU (default: 1)")
 
     args = parser.parse_args()
 
@@ -224,20 +225,20 @@ def main():
                 print("Error: Product name is required")
                 sys.exit(1)
 
-        # Read SKU list from file
+        # Read image paths from file and construct SKU list
         sku_list = []
+        sku_index = 0
         with open(args.file, 'r', encoding='utf-8') as f:
             for line in f:
                 line = line.strip()
                 if not line or line.startswith('#'):
                     continue
-                parts = line.split()
-                if len(parts) >= 2:
-                    sku_list.append({
-                        'name': parts[0],
-                        'image_path': _strip_quotes(parts[1]),
-                        'count': int(parts[2]) if len(parts) > 2 else 1
-                    })
+                sku_list.append({
+                    'name': f'sku_{sku_index}',
+                    'image_path': _strip_quotes(line),
+                    'count': args.count
+                })
+                sku_index += 1
 
         if not sku_list:
             print("Error: No SKU found in file")
