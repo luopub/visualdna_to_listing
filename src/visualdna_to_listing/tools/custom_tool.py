@@ -10,8 +10,11 @@ import winsound
 
 try:
     from .utils import save_image_from_url
+    from .llm_provider import LLMProvider
 except ImportError:
     from utils import save_image_from_url
+    from llm_provider import LLMProvider
+
 
 class UserInputToolInput(BaseModel):
     """Input schema for UserInputTool."""
@@ -242,22 +245,6 @@ class OpenRouterImageTool(BaseTool):
             return f"Image generation error: {str(e)}"
 
 
-# Vision LLM for image description
-_vision_llm: LLM | None = None
-
-
-def get_vision_llm() -> LLM:
-    """Get or create the vision LLM instance."""
-    global _vision_llm
-    if _vision_llm is None:
-        _vision_llm = LLM(
-            model="qwen3.5-plus",
-            api_key=os.environ.get("DASHSCOPE_API_KEY"),
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        )
-    return _vision_llm
-
-
 class GetImageDescToolInput(BaseModel):
     """Input schema for GetImageDescTool."""
     image_source: str = Field(..., description="Image source: URL (http/https) or local file path.")
@@ -325,7 +312,7 @@ Summarize the final description in a clear and concise manner in less than 100 w
             base_prompt += f"\n\n**Special Focus**: Pay extra attention to '{focus_aspect}' in your analysis."
 
         try:
-            llm = get_vision_llm()
+            llm = LLMProvider.get_llm_vision()
             response = llm.call(
                 messages=[
                     {

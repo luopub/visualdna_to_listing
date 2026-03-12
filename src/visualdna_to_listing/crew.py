@@ -1,15 +1,12 @@
-from datetime import datetime
-import json
 import os
-from crewai import LLM, Agent, Crew, Process, Task
+from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai.tools import tool
 from .tools.custom_tool import HunyuanImageTool, UserInputTool, GetImageDescTool, OpenRouterImageTool
-import httpx
-from crewai.llms.hooks import BaseInterceptor
 from .tools.my_file_read_tool import MyFileReadTool as FileReadTool
+from .tools.llm_provider import LLMProvider
 from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 
 search_tool = SerperDevTool()
@@ -20,6 +17,8 @@ image_generator_tool = HunyuanImageTool()
 user_input_tool = UserInputTool()
 get_image_desc_tool = GetImageDescTool()
 
+llm = LLMProvider.get_llm_main()
+
 @tool
 def image_generator_tool2(prompts: str, reference_images: list[str] | None=None, saved_images: list[str] | None=None) -> None:
     """Useful for when you need to generate images based on prompts and reference images."""
@@ -28,48 +27,6 @@ def image_generator_tool2(prompts: str, reference_images: list[str] | None=None,
     print(f"Using reference images: {reference_images}")
     print(f"Saving images to: {saved_images}")
 
-class CustomInterceptor(BaseInterceptor[httpx.Request, httpx.Response]):
-    def __init__(self, *args, **kwargs):
-        # The log file name ends with date time
-        self.llm_log_path = "llm_log_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".json"
-        self.llm_log = []
-        super().__init__(*args, **kwargs)
-
-    def on_outbound(self, request: httpx.Request) -> httpx.Request:
-        """Print request before sending to the LLM provider."""
-        # print(request)
-        log_idx = len(self.llm_log) // 2
-        self.llm_log.append({f"request_{log_idx}": json.loads(request.content)})
-        with open(self.llm_log_path, "w", encoding="utf-8") as f:
-            json.dump(self.llm_log, f, indent=4)
-        return request
-
-    def on_inbound(self, response: httpx.Response) -> httpx.Response:
-        """Process response after receiving from the LLM provider."""
-        # print(f"Status: {response.status_code}")
-        # print(f"Response time: {response.elapsed}")
-        return response
-
-# Create Kimi LLM using native OpenAI provider with custom base_url
-# llm = LLM(model="kimi-k2.5",
-#         api_key=os.environ.get("MOONSHOT_API_KEY"),
-#         base_url="https://api.moonshot.cn/v1",
-#         interceptor=CustomInterceptor()
-#         )
-
-# Create GLM LLM using native OpenAI provider with custom base_url
-# llm = LLM(model="GLM-4.6V",
-#         api_key=os.environ.get("ZAI_API_KEY"),
-#         base_url="https://open.bigmodel.cn/api/paas/v4/",
-#         interceptor=CustomInterceptor()
-#         )
-
-# Create QWEN LLM using native OpenAI provider with custom base_url
-llm = LLM(model="qwen3.5-plus",
-        api_key=os.environ.get("DASHSCOPE_API_KEY"),
-        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
-        interceptor=CustomInterceptor()
-        )
 
 @CrewBase
 class VisualdnaToListing():
