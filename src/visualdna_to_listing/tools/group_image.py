@@ -2,6 +2,7 @@ import os
 import json
 import csv
 from pathlib import Path
+import re
 from typing import Optional
 from datetime import datetime
 
@@ -317,10 +318,28 @@ def main():
     args = parser.parse_args()
 
     # 对于未提供的参数，提示用户输入
+    # directory 是必须参数
     if args.directory is None:
-        user_input = input('请输入图片目录路径 (直接回车使用默认值): ').strip()
+        user_input = input('请输入图片目录路径 (必填): ').strip()
         if user_input:
             args.directory = user_input
+
+    # 去除路径两端的引号（如果有）
+    if args.directory:
+        args.directory = re.sub("(^')|('$)|(^\")|(\"$)", '', args.directory)
+    
+    # 验证 directory 参数
+    if not args.directory:
+        print("错误: 图片目录路径是必填参数，未提供有效路径。")
+        exit(1)
+    
+    if not os.path.exists(args.directory):
+        print(f"错误: 指定的目录不存在: {args.directory}")
+        exit(1)
+    
+    if not os.path.isdir(args.directory):
+        print(f"错误: 指定的路径不是目录: {args.directory}")
+        exit(1)
 
     if args.desc_prompt is None:
         user_input = input('请输入自定义图片描述提示词 (直接回车使用默认值): ').strip()
