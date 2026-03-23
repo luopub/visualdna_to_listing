@@ -249,6 +249,7 @@ class GetImageDescToolInput(BaseModel):
     """Input schema for GetImageDescTool."""
     image_source: str = Field(..., description="Image source: URL (http/https) or local file path.")
     focus_aspect: Optional[str] = Field(default=None, description="Optional aspect to focus on (e.g., 'product features', 'color scheme', 'background', 'style').")
+    base_prompt: Optional[str] = Field(default=None, description="Optional custom base prompt to use for image analysis. If not provided, a default product listing focused prompt will be used.")
 
 
 class GetImageDescTool(BaseTool):
@@ -262,7 +263,7 @@ class GetImageDescTool(BaseTool):
     )
     args_schema: Type[BaseModel] = GetImageDescToolInput
 
-    def _run(self, image_source: str, focus_aspect: str | None = None) -> str:
+    def _run(self, image_source: str, focus_aspect: str | None = None, base_prompt: str | None = None) -> str:
         # Prepare image content
         if image_source.startswith("http://") or image_source.startswith("https://"):
             # URL source
@@ -292,8 +293,9 @@ class GetImageDescTool(BaseTool):
             except Exception as e:
                 return f"Error reading local file: {str(e)}"
 
-        # Build the prompt for product listing focused description
-        base_prompt = """Analyze this image and provide a detailed description optimized for creating product listing image generation prompts.
+        if not base_prompt:
+            # Build the prompt for product listing focused description
+            base_prompt = """Analyze this image and provide a detailed description optimized for creating product listing image generation prompts.
 
 Focus on:
 1. **Product/Subject**: What is the main subject? Describe its key features, shape, material appearance, and distinctive characteristics.
@@ -332,51 +334,51 @@ Summarize the final description in a clear and concise manner in less than 100 w
 
 if __name__ == "__main__":
     # ========== Test GetImageDescTool ==========
-    # print("=" * 50)
-    # print("GetImageDescTool Test")
-    # print("=" * 50)
+    print("=" * 50)
+    print("GetImageDescTool Test")
+    print("=" * 50)
 
-    # # Check if API key is set
-    # if not os.environ.get("DASHSCOPE_API_KEY"):
-    #     print("Error: DASHSCOPE_API_KEY environment variable is not set.")
-    #     print("Please set it before running the test:")
-    #     print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
-    #     print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
-    #     exit(1)
+    # Check if API key is set
+    if not os.environ.get("DASHSCOPE_API_KEY"):
+        print("Error: DASHSCOPE_API_KEY environment variable is not set.")
+        print("Please set it before running the test:")
+        print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
+        print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
+        exit(1)
 
-    # tool = GetImageDescTool()
+    tool = GetImageDescTool()
 
-    # # Test 1: Analyze a local image file
-    # print("\n--- Test 1: Local Image File ---")
-    # test_image = input("Enter path to a test image file (or press Enter to skip): ").strip()
-    # if test_image:
-    #     print(f"\nAnalyzing: {test_image}")
-    #     result = tool._run(image_source=test_image)
-    #     print(f"\nResult:\n{result}")
-    # else:
-    #     print("Skipped local file test.")
+    # Test 1: Analyze a local image file
+    print("\n--- Test 1: Local Image File ---")
+    test_image = input("Enter path to a test image file (or press Enter to skip): ").strip()
+    if test_image:
+        print(f"\nAnalyzing: {test_image}")
+        result = tool._run(image_source=test_image)
+        print(f"\nResult:\n{result}")
+    else:
+        print("Skipped local file test.")
 
-    # # Test 2: Analyze an image URL
-    # print("\n--- Test 2: Image URL ---")
-    # test_url = input("Enter an image URL (or press Enter to skip): ").strip()
-    # if test_url:
-    #     print(f"\nAnalyzing: {test_url}")
-    #     result = tool._run(image_source=test_url)
-    #     print(f"\nResult:\n{result}")
-    # else:
-    #     print("Skipped URL test.")
+    # Test 2: Analyze an image URL
+    print("\n--- Test 2: Image URL ---")
+    test_url = input("Enter an image URL (or press Enter to skip): ").strip()
+    if test_url:
+        print(f"\nAnalyzing: {test_url}")
+        result = tool._run(image_source=test_url)
+        print(f"\nResult:\n{result}")
+    else:
+        print("Skipped URL test.")
 
-    # # Test 3: Analyze with focus aspect
-    # print("\n--- Test 3: With Focus Aspect ---")
-    # if test_image or test_url:
-    #     source = test_image or test_url
-    #     focus = input("Enter focus aspect (e.g., 'colors', 'style', or press Enter to skip): ").strip()
-    #     if focus:
-    #         print(f"\nAnalyzing with focus on '{focus}': {source}")
-    #         result = tool._run(image_source=source, focus_aspect=focus)
-    #         print(f"\nResult:\n{result}")
-    # else:
-    #     print("Skipped focus aspect test (no image provided).")
+    # Test 3: Analyze with focus aspect
+    print("\n--- Test 3: With Focus Aspect ---")
+    if test_image or test_url:
+        source = test_image or test_url
+        focus = input("Enter focus aspect (e.g., 'colors', 'style', or press Enter to skip): ").strip()
+        if focus:
+            print(f"\nAnalyzing with focus on '{focus}': {source}")
+            result = tool._run(image_source=source, focus_aspect=focus)
+            print(f"\nResult:\n{result}")
+    else:
+        print("Skipped focus aspect test (no image provided).")
 
     # ========== Test OpenRouterImageTool ==========
     # print("\n" + "=" * 50)
@@ -421,37 +423,38 @@ if __name__ == "__main__":
     # print("=" * 50)
 
     # ========== Test HunyuanImageTool ==========
-    print("\n" + "=" * 50)
-    print("HunyuanImageTool Test")
-    print("=" * 50)
+    # print("\n" + "=" * 50)
+    # print("HunyuanImageTool Test")
+    # print("=" * 50)
 
-    hunyuan_tool = HunyuanImageTool()
+    # hunyuan_tool = HunyuanImageTool()
 
-    # Test with reference images
-    print("\n--- Test: Generate Image with Reference Images ---")
-    ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
-    if ref_images:
-        ref_list = [p.strip() for p in ref_images.split(",")]
-    else:
-        ref_list = []
+    # # Test with reference images
+    # print("\n--- Test: Generate Image with Reference Images ---")
+    # ref_images = input("Enter reference image paths (comma-separated, or press Enter to skip): ").strip()
+    # if ref_images:
+    #     ref_list = [p.strip() for p in ref_images.split(",")]
+    # else:
+    #     ref_list = []
 
-    gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
-    if not gen_prompt:
-        gen_prompt = "A beautiful product photo with clean background"
+    # gen_prompt = input("Enter generation prompt (or press Enter for default test): ").strip()
+    # if not gen_prompt:
+    #     gen_prompt = "A beautiful product photo with clean background"
 
-    print(f"\nGenerating image...")
-    print(f"  Prompt: {gen_prompt[:80]}...")
-    if ref_list:
-        print(f"  Reference images: {len(ref_list)}")
+    # print(f"\nGenerating image...")
+    # print(f"  Prompt: {gen_prompt[:80]}...")
+    # if ref_list:
+    #     print(f"  Reference images: {len(ref_list)}")
 
-    result = hunyuan_tool._run(
-        prompt=gen_prompt,
-        resolution="1024:1024",
-        reference_images=ref_list if ref_list else None,
-        saved_images=["test_output_hunyuan"]
-    )
-    print(f"\nResult:\n{result}")
+    # result = hunyuan_tool._run(
+    #     prompt=gen_prompt,
+    #     resolution="1024:1024",
+    #     reference_images=ref_list if ref_list else None,
+    #     saved_images=["test_output_hunyuan"]
+    # )
+    # print(f"\nResult:\n{result}")
 
-    print("\n" + "=" * 50)
-    print("Test completed")
-    print("=" * 50)
+    # print("\n" + "=" * 50)
+    # print("Test completed")
+    # print("=" * 50)
+    pass
