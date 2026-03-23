@@ -338,14 +338,6 @@ if __name__ == "__main__":
     print("GetImageDescTool Test")
     print("=" * 50)
 
-    # Check if API key is set
-    if not os.environ.get("DASHSCOPE_API_KEY"):
-        print("Error: DASHSCOPE_API_KEY environment variable is not set.")
-        print("Please set it before running the test:")
-        print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
-        print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
-        exit(1)
-
     tool = GetImageDescTool()
 
     # Test 1: Analyze a local image file

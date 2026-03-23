@@ -49,6 +49,13 @@ class LLMProvider:
     @classmethod
     def get_llm_main(cls) -> LLM:
         if cls.llm_main is None:
+            # 检查API密钥
+            if not os.environ.get("DASHSCOPE_API_KEY"):
+                print("错误: 未设置 DASHSCOPE_API_KEY 环境变量")
+                print("请先设置环境变量:")
+                print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
+                print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
+                raise Exception("DASHSCOPE_API_KEY environment variable not set")
             cls.llm_main = LLM(
                 model="qwen3.5-plus",
                 api_key=os.environ.get("DASHSCOPE_API_KEY"),
@@ -61,6 +68,13 @@ class LLMProvider:
     @classmethod
     def get_llm_vision(cls) -> LLM:
         if cls.llm_vision is None:
+            # 检查API密钥
+            if not os.environ.get("DASHSCOPE_API_KEY"):
+                print("错误: 未设置 DASHSCOPE_API_KEY 环境变量")
+                print("请先设置环境变量:")
+                print("  Windows: set DASHSCOPE_API_KEY=your-api-key")
+                print("  Linux/Mac: export DASHSCOPE_API_KEY=your-api-key")
+                raise Exception("DASHSCOPE_API_KEY environment variable not set")
             # Create QWEN LLM using native OpenAI provider with custom base_url
             cls.llm_vision = LLM(model="qwen3.5-plus",
                     api_key=os.environ.get("DASHSCOPE_API_KEY"),
