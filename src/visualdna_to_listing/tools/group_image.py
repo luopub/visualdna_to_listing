@@ -316,6 +316,42 @@ def main():
 
     args = parser.parse_args()
 
+    # 对于未提供的参数，提示用户输入
+    if args.directory is None:
+        user_input = input('请输入图片目录路径 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.directory = user_input
+
+    if args.desc_prompt is None:
+        user_input = input('请输入自定义图片描述提示词 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.desc_prompt = user_input
+
+    if args.group_prompt is None:
+        user_input = input('请输入自定义分组提示词 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.group_prompt = user_input
+
+    if args.json_output is None:
+        user_input = input('请输入描述结果JSON文件路径 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.json_output = user_input
+
+    if args.csv_output is None:
+        user_input = input('请输入分组结果CSV文件路径 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.csv_output = user_input
+
+    if not args.skip_analysis:
+        user_input = input('是否跳过分析，使用已有的JSON文件? (y/n, 直接回车默认为n): ').strip().lower()
+        if user_input == 'y':
+            args.skip_analysis = True
+
+    if args.existing_json is None:
+        user_input = input('请输入已有的描述JSON文件路径 (直接回车使用默认值): ').strip()
+        if user_input:
+            args.existing_json = user_input
+
     # 创建图片分组器
     grouper = ImageGrouper(
         image_desc_prompt=args.desc_prompt,
