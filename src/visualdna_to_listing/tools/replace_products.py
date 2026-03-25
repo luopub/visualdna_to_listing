@@ -57,19 +57,19 @@ def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index
     """
     name = task.get("名称", f"任务{index + 1}")
     prompt = task.get("提示词", "")
-    original_file = task.get("原始文件", "")
+    original_file = task.get("原始图片", "")
     new_product_image = task.get("新产品图", "")
     output_file = task.get("输出文件", "")
 
     print(f"\n[{index + 1}/{total}] 处理: {name}")
     print(f"  提示词: {prompt}")
-    print(f"  原始文件: {original_file}")
+    print(f"  原始图片: {original_file}")
     print(f"  新产品图: {new_product_image}")
     print(f"  输出文件: {output_file}")
 
     # 验证输入文件是否存在
     if not Path(original_file).exists():
-        print(f"  错误: 原始文件不存在: {original_file}")
+        print(f"  错误: 原始图片不存在: {original_file}")
         return False
 
     if not Path(new_product_image).exists():
@@ -78,7 +78,7 @@ def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index
 
     try:
         # 调用混元生图API
-        # 将原始文件和新产品图作为垫图传入
+        # 将原始图片和新产品图作为垫图传入
         result = client.generate_image_intern(
             prompt=prompt,
             resolution="1024:1024",
@@ -94,7 +94,7 @@ def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index
             saved_path = save_image_from_url(result.image_urls[0], str(Path(output_file).parent), Path(output_file).stem)
             print(f"  图片已保存: {saved_path}")
 
-            # 如果是 PNG 文件，转换为 JPG 并删除原始文件
+            # 如果是 PNG 文件，转换为 JPG 并删除原始图片
             saved_path_obj = Path(saved_path)
             if saved_path_obj.suffix.lower() == '.png':
                 jpg_path = saved_path_obj.with_suffix('.jpg')
