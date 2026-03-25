@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import List, Dict, Any
 import urllib.request
 
+from PIL import Image
+
 # 导入HunyuanImageClient
 try:
     from .utils import save_image_from_url
@@ -91,6 +93,27 @@ def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index
             # 下载生成的图片
             saved_path = save_image_from_url(result.image_urls[0], str(Path(output_file).parent), Path(output_file).stem)
             print(f"  图片已保存: {saved_path}")
+
+            # 如果是 PNG 文件，转换为 JPG 并删除原始文件
+            saved_path_obj = Path(saved_path)
+            if saved_path_obj.suffix.lower() == '.png':
+                jpg_path = saved_path_obj.with_suffix('.jpg')
+                try:
+                    with Image.open(saved_path_obj) as img:
+                        # 转换为 RGB 模式（JPG 不支持透明度）
+                        if img.mode in ('RGBA', 'LA', 'P'):
+                            rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                            rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                            img = rgb_img
+                        else:
+                            img = img.convert('RGB')
+                        img.save(jpg_path, 'JPEG', quality=95)
+                    # 删除原始 PNG 文件
+                    saved_path_obj.unlink()
+                    print(f"  已转换为 JPG: {jpg_path}")
+                except Exception as e:
+                    print(f"  转换 JPG 失败: {e}")
+
             return True
         else:
             print(f"  生成失败: {result.error_msg or '未知错误'}")
