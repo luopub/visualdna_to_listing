@@ -168,6 +168,21 @@ def main():
 
         print(f"找到 {len(tasks)} 个替换任务")
 
+        # 获取第一个任务的输出目录并让用户确认
+        first_output_file = tasks[0].get("输出文件", "")
+        if first_output_file:
+            first_output_dir = str(Path(first_output_file).parent)
+            print("\n" + "-" * 60)
+            print(f"输出目录: {first_output_dir}")
+            print("-" * 60)
+            confirm = input("请确认输出目录是否正确 (y/n): ").strip().lower()
+            if confirm != 'y':
+                print("用户取消操作，程序退出。")
+                sys.exit(0)
+        else:
+            print("错误: 第一个任务未指定输出文件")
+            sys.exit(1)
+
         # 初始化HunyuanImageClient
         print("\n初始化混元生图客户端...")
         client = HunyuanImageClient()
