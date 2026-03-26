@@ -67,22 +67,36 @@ def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index
     print(f"  新产品图: {new_product_image}")
     print(f"  输出文件: {output_file}")
 
-    # 验证输入文件是否存在
-    if not Path(original_file).exists():
+    # 验证输入文件（允许其中之一为空，但不允许同时为空）
+    original_exists = original_file and Path(original_file).exists()
+    new_product_exists = new_product_image and Path(new_product_image).exists()
+
+    if not original_exists and not new_product_exists:
+        print(f"  错误: 原始图片和新产品图不能同时为空")
+        return False
+
+    if original_file and not original_exists:
         print(f"  错误: 原始图片不存在: {original_file}")
         return False
 
-    if not Path(new_product_image).exists():
+    if new_product_image and not new_product_exists:
         print(f"  错误: 新产品图不存在: {new_product_image}")
         return False
 
     try:
+        # 构建垫图列表（只添加存在的图片）
+        images = []
+        if original_exists:
+            images.append(original_file)
+        if new_product_exists:
+            images.append(new_product_image)
+
         # 调用混元生图API
-        # 将原始图片和新产品图作为垫图传入
+        # 将原始图片和新产品图作为垫图传入（允许其中之一为空）
         result = client.generate_image_intern(
             prompt=prompt,
             resolution="1024:1024",
-            images=[original_file, new_product_image],  # 两张垫图：原始场景图 + 新产品图
+            images=images,  # 垫图：原始场景图 + 新产品图（允许其中之一为空）
             logo_add=0,  # 不添加水印
             revise=1,    # 开启提示词改写
             poll_interval=2,
