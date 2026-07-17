@@ -15,6 +15,9 @@ from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
 
+TC_SECRET_ID = os.environ.get("TENCENT_CLOUD_SECRET_ID", "")
+TC_SECRET_KEY = os.environ.get("TENCENT_CLOUD_SECRET_KEY", "")
+
 
 @dataclass
 class UploadResult:
@@ -334,6 +337,39 @@ def upload_image(
         ).upload(file_path)
     else:
         return UploadResult(success=False, error=f"不支持的上传方式: {method}")
+
+def upload_local_image_to_tc(file_path: str) -> str:
+    """
+    上传本地图片并返回URL
+
+    Args:
+        file_path: 本地文件路径
+
+    Returns:
+        图片URL
+
+    Raises:
+        Exception: 上传失败时抛出异常
+    """
+    # 检查缓存
+    abs_path = str(Path(file_path).resolve())
+    
+    # 导入上传模块
+    import sys
+    
+    # 使用 SM.MS 上传（免费，无需配置）
+    result = upload_image(file_path, method="cos", cos_config={
+        "secret_id": TC_SECRET_ID,
+        "secret_key": TC_SECRET_KEY,
+        "region": "ap-guangzhou",
+        "bucket": "image-cache-1252557679"
+        })  # 替换为你的COS桶)
+    
+    if not result.success or not result.url:
+        raise Exception(f"图片上传失败: {result.error or '未获取到URL'}")
+    
+    # 缓存结果
+    return result.url
 
 
 if __name__ == "__main__":

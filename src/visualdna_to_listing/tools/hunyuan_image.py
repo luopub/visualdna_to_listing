@@ -22,6 +22,10 @@ from tencentcloud.common.exception.tencent_cloud_sdk_exception import TencentClo
 from tencentcloud.aiart.v20221229 import aiart_client, models
 
 import os
+try:
+    from .image_uploader import upload_local_image_to_tc
+except ImportError:
+    from image_uploader import upload_local_image_to_tc
 
 # Configuration loaded from environment variables
 SECRET_ID = os.environ.get("TENCENT_CLOUD_SECRET_ID", "")
@@ -97,46 +101,6 @@ class HunyuanImageClient:
         """
         return path.startswith("http://") or path.startswith("https://")
 
-    def _upload_local_image(self, file_path: str) -> str:
-        """
-        上传本地图片并返回URL
-
-        Args:
-            file_path: 本地文件路径
-
-        Returns:
-            图片URL
-
-        Raises:
-            Exception: 上传失败时抛出异常
-        """
-        # 检查缓存
-        abs_path = str(Path(file_path).resolve())
-        if abs_path in self._uploaded_urls:
-            return self._uploaded_urls[abs_path]
-        
-        # 导入上传模块
-        import sys
-        try:
-            from .image_uploader import upload_image
-        except ImportError:
-            from image_uploader import upload_image
-        
-        # 使用 SM.MS 上传（免费，无需配置）
-        result = upload_image(file_path, method="cos", cos_config={
-            "secret_id": SECRET_ID,
-            "secret_key": SECRET_KEY,
-            "region": "ap-guangzhou",
-            "bucket": "image-cache-1252557679"
-          })  # 替换为你的COS桶)
-        
-        if not result.success or not result.url:
-            raise Exception(f"图片上传失败: {result.error or '未获取到URL'}")
-        
-        # 缓存结果
-        self._uploaded_urls[abs_path] = result.url
-        return result.url
-
     def submit_job(
         self,
         prompt: str,
@@ -183,7 +147,7 @@ class HunyuanImageClient:
                 else:
                     # 本地文件路径，上传到图床
                     print(f"上传本地图片: {img}")
-                    url = self._upload_local_image(img)
+                    url = self.upload_local_image_to_tc(img)
                     print(f"上传成功，URL: {url}")
                     processed_images.append(url)
             body["Images"] = processed_images
