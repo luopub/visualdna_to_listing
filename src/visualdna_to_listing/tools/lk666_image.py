@@ -1,6 +1,6 @@
 """
-LK888 GPT Image 2 API 封装
-基于 LK888 AI大模型聚合平台 GPT Image 2 模型
+LK666 GPT Image 2 API 封装
+基于 LK666 AI大模型聚合平台 GPT Image 2 模型
 
 API 文档:
 - 创建任务: POST https://api.lk888.ai/v1/media/generate
@@ -26,12 +26,12 @@ except ImportError:
     from image_uploader import upload_local_image_to_tc
 
 # Configuration loaded from environment variables
-LK888_API_KEY = os.environ.get("LK888_API_KEY", "")
+LK666_API_KEY = os.environ.get("LK666_API_KEY", "")
 
 
 @dataclass
-class Lk888ImageResult:
-    """LK888图片生成结果"""
+class Lk666ImageResult:
+    """LK666图片生成结果"""
     task_id: str
     state: str
     is_final: bool
@@ -62,8 +62,8 @@ class Lk888ImageResult:
         return self.state == "pending"
 
 
-class Lk888ImageClient:
-    """LK888 GPT Image 2 客户端"""
+class Lk666ImageClient:
+    """LK666 GPT Image 2 客户端"""
 
     # 支持的图片尺寸枚举
     VALID_SIZES = {
@@ -76,12 +76,12 @@ class Lk888ImageClient:
     # 支持的图片质量枚举
     VALID_QUALITIES = {"auto", "high", "medium", "low"}
 
-    def __init__(self, api_key: str = LK888_API_KEY, base_url: str = "https://api.lk888.ai"):
+    def __init__(self, api_key: str = LK666_API_KEY, base_url: str = "https://api.lk888.ai"):
         """
         初始化客户端
 
         Args:
-            api_key: LK888 API Key
+            api_key: LK666 API Key
             base_url: API 基础 URL，默认 https://api.lk888.ai
         """
         self.api_key = api_key
@@ -204,7 +204,7 @@ class Lk888ImageClient:
 
         return str(task_id)
 
-    def query_job(self, task_id: str) -> Lk888ImageResult:
+    def query_job(self, task_id: str) -> Lk666ImageResult:
         """
         查询图片生成任务状态
 
@@ -212,7 +212,7 @@ class Lk888ImageClient:
             task_id: 任务 ID
 
         Returns:
-            Lk888ImageResult 对象
+            Lk666ImageResult 对象
 
         Raises:
             Exception: 查询失败时抛出异常
@@ -229,7 +229,7 @@ class Lk888ImageClient:
         except json.JSONDecodeError as e:
             raise Exception(f"解析响应失败: {e}，原始响应: {resp.text}")
 
-        return Lk888ImageResult(
+        return Lk666ImageResult(
             task_id=str(data.get("task_id", task_id)),
             state=data.get("state", ""),
             is_final=data.get("is_final", False),
@@ -252,7 +252,7 @@ class Lk888ImageClient:
         poll_interval: int = 5,
         max_retries: int = 60,
         **kwargs
-    ) -> Lk888ImageResult:
+    ) -> Lk666ImageResult:
         """
         生成图片（提交任务并轮询等待结果）
 
@@ -268,12 +268,15 @@ class Lk888ImageClient:
             max_retries: 最大轮询次数，默认 60 次
 
         Returns:
-            Lk888ImageResult 对象
+            Lk666ImageResult 对象
 
         Raises:
             Exception: 生成失败或超时时抛出异常
         """
         # 提交任务
+        if ':' in size:
+            # 如果 size 是 "宽:高" 格式，转换为 "宽x高"
+            size = size.replace(":", "x")
         task_id = self.submit_job(
             prompt=prompt,
             size=size,
@@ -287,7 +290,7 @@ class Lk888ImageClient:
 
         # 处理同步返回的情况
         if task_id.startswith("__sync__"):
-            return Lk888ImageResult(
+            return Lk666ImageResult(
                 task_id=task_id,
                 state="success",
                 is_final=True,
@@ -319,7 +322,7 @@ class Lk888ImageClient:
     @staticmethod
     def generate_image(
         prompt: str,
-        api_key: str = LK888_API_KEY,
+        api_key: str = LK666_API_KEY,
         base_url: str = "https://api.lk888.ai",
         size: str = "auto",
         images: Optional[List[str]] = None,
@@ -330,13 +333,13 @@ class Lk888ImageClient:
         poll_interval: int = 5,
         max_retries: int = 60,
         **kwargs
-    ) -> Lk888ImageResult:
+    ) -> Lk666ImageResult:
         """
         便捷的图片生成函数（提交任务并轮询等待结果）
 
         Args:
             prompt: 文本描述
-            api_key: LK888 API Key
+            api_key: LK666 API Key
             base_url: API 基础 URL，默认 https://api.lk888.ai
             size: 生成图片尺寸，默认 auto
             images: 参考图片 URL 列表
@@ -348,17 +351,17 @@ class Lk888ImageClient:
             max_retries: 最大轮询次数，默认 60 次
 
         Returns:
-            Lk888ImageResult 对象
+            Lk666ImageResult 对象
 
         Example:
-            >>> result = Lk888ImageClient.generate_image(
+            >>> result = Lk666ImageClient.generate_image(
             ...     api_key="your-api-key",
             ...     prompt="一只可爱的小猫在草地上玩耍",
             ...     size="1024x1024"
             ... )
             >>> print(result.result_url)
         """
-        client = Lk888ImageClient(api_key=api_key, base_url=base_url)
+        client = Lk666ImageClient(api_key=api_key, base_url=base_url)
         return client.generate_image_intern(
             prompt=prompt,
             size=size,
@@ -375,28 +378,28 @@ class Lk888ImageClient:
 
 if __name__ == "__main__":
     # ========== 测试代码 ==========
-    # 注意：运行测试前需要设置环境变量 LK888_API_KEY
+    # 注意：运行测试前需要设置环境变量 LK666_API_KEY
 
     # 测试配置
     TEST_PROMPT = "一只可爱的金毛犬在豆袋上睡觉，背景是温馨的儿童房，光线柔和，风格卡通"
     TEST_SIZE = "1024x1024"
 
     print("=" * 50)
-    print("LK888 GPT Image 2 API 测试")
+    print("LK666 GPT Image 2 API 测试")
     print("=" * 50)
     print(f"提示词: {TEST_PROMPT}")
     print(f"尺寸: {TEST_SIZE}")
     print()
 
-    if not LK888_API_KEY:
-        print("警告: 未设置 LK888_API_KEY 环境变量，测试将跳过")
-        print("请先设置: export LK888_API_KEY=your-api-key")
+    if not LK666_API_KEY:
+        print("警告: 未设置 LK666_API_KEY 环境变量，测试将跳过")
+        print("请先设置: export LK666_API_KEY=your-api-key")
         exit(0)
 
     try:
         # 方法 1: 使用便捷函数
         print("方法 1: 使用便捷函数 generate_image()")
-        result = Lk888ImageClient.generate_image(
+        result = Lk666ImageClient.generate_image(
             prompt=TEST_PROMPT,
             size=TEST_SIZE,
             quality="auto",
@@ -417,11 +420,11 @@ if __name__ == "__main__":
     print("=" * 50)
 
     # 方法 2: 使用客户端类（更灵活的控制）
-    print("\n方法 2: 使用 Lk888ImageClient 客户端类")
+    print("\n方法 2: 使用 Lk666ImageClient 客户端类")
     print("-" * 50)
 
     try:
-        client = Lk888ImageClient()
+        client = Lk666ImageClient()
 
         prompt = """Subject: A candid over-the-shoulder shot from behind a young woman with wavy brown hair. 
 Action: Wearing a cozy, light-grey ribbed knit sweater and a white skirt, she is carrying the bag under her arm. 

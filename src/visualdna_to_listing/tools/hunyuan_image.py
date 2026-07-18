@@ -147,7 +147,7 @@ class HunyuanImageClient:
                 else:
                     # 本地文件路径，上传到图床
                     print(f"上传本地图片: {img}")
-                    url = self.upload_local_image_to_tc(img)
+                    url = upload_local_image_to_tc(img)
                     print(f"上传成功，URL: {url}")
                     processed_images.append(url)
             body["Images"] = processed_images

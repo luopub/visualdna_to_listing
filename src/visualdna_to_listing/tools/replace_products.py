@@ -1,6 +1,6 @@
 """
 产品图片批量替换工具
-根据JSON配置文件，使用HunyuanImageClient进行产品图片的批量替换
+根据JSON配置文件，使用ImageClient进行产品图片的批量替换
 """
 
 import json
@@ -13,12 +13,12 @@ import urllib.request
 
 from PIL import Image
 
-# 导入HunyuanImageClient
+# 导入ImageClient
 try:
     from .utils import save_image_from_url
-    from .hunyuan_image import HunyuanImageClient
+    from .hunyuan_image import HunyuanImageClient as ImageClient
 except ImportError:
-    from hunyuan_image import HunyuanImageClient
+    from hunyuan_image import HunyuanImageClient as ImageClient
     from utils import save_image_from_url
 
 def load_json_config(json_path: str) -> Dict[str, Any]:
@@ -42,13 +42,13 @@ def load_json_config(json_path: str) -> Dict[str, Any]:
         return json.load(f)
 
 
-def process_replace_task(task: Dict[str, str], client: HunyuanImageClient, index: int, total: int) -> bool:
+def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, total: int) -> bool:
     """
     处理单个图片替换任务
 
     Args:
         task: 任务配置字典
-        client: HunyuanImageClient实例
+        client: ImageClient实例
         index: 当前任务索引
         total: 总任务数
 
@@ -183,9 +183,9 @@ def main():
             print("错误: 第一个任务未指定输出文件")
             sys.exit(1)
 
-        # 初始化HunyuanImageClient
+        # 初始化ImageClient
         print("\n初始化混元生图客户端...")
-        client = HunyuanImageClient()
+        client = ImageClient()
 
         # 处理每个任务
         success_count = 0
