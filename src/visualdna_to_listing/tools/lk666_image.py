@@ -35,8 +35,8 @@ class Lk666ImageResult:
     task_id: str
     state: str
     is_final: bool
-    result_url: str
-    error: str
+    image_urls: List[str]
+    error_msg: str
     status: str = ""
     progress: str = ""
     cost: float = 0.0
@@ -229,12 +229,13 @@ class Lk666ImageClient:
         except json.JSONDecodeError as e:
             raise Exception(f"解析响应失败: {e}，原始响应: {resp.text}")
 
+        result_url = data.get("result_url", "")
         return Lk666ImageResult(
             task_id=str(data.get("task_id", task_id)),
             state=data.get("state", ""),
             is_final=data.get("is_final", False),
-            result_url=data.get("result_url", ""),
-            error=data.get("error", ""),
+            image_urls=[result_url] if result_url else [],
+            error_msg=data.get("error", ""),
             status=data.get("status", ""),
             progress=data.get("progress", ""),
             cost=float(data.get("cost", 0)),
@@ -243,7 +244,7 @@ class Lk666ImageClient:
     def generate_image_intern(
         self,
         prompt: str,
-        size: str = "auto",
+        resolution: str = "auto",
         images: Optional[List[str]] = None,
         quality: str = "auto",
         model: str = "gpt-image-2",
@@ -274,17 +275,18 @@ class Lk666ImageClient:
             Exception: 生成失败或超时时抛出异常
         """
         # 提交任务
-        if ':' in size:
-            # 如果 size 是 "宽:高" 格式，转换为 "宽x高"
-            size = size.replace(":", "x")
+        if ':' in resolution:
+            # 如果 resolution 是 "宽:高" 格式，转换为 "宽x高"
+            resolution = resolution.replace(":", "x")
         task_id = self.submit_job(
             prompt=prompt,
-            size=size,
+            size=resolution,
             images=images,
             quality=quality,
             model=model,
             n=n,
             notify_url=notify_url,
+            imageSize="1K", # Nanobanana 2
             **kwargs
         )
 
@@ -294,8 +296,8 @@ class Lk666ImageClient:
                 task_id=task_id,
                 state="success",
                 is_final=True,
-                result_url="",
-                error="",
+                image_urls=[],
+                error_msg="",
                 status="已完成（同步返回）",
                 progress="100%",
             )
@@ -307,10 +309,10 @@ class Lk666ImageClient:
             result = self.query_job(task_id)
 
             if result.is_completed:
-                print(f"任务处理完成，结果URL: {result.result_url}")
+                print(f"任务处理完成，结果URL: {result.image_urls}")
                 return result
             elif result.is_failed:
-                raise Exception(f"任务处理失败: {result.error}")
+                raise Exception(f"任务处理失败: {result.error_msg}")
             else:
                 print(f"任务处理中，状态: {result.status} ({result.progress})")
 
@@ -359,7 +361,7 @@ class Lk666ImageClient:
             ...     prompt="一只可爱的小猫在草地上玩耍",
             ...     size="1024x1024"
             ... )
-            >>> print(result.result_url)
+            >>> print(result.image_urls)
         """
         client = Lk666ImageClient(api_key=api_key, base_url=base_url)
         return client.generate_image_intern(
@@ -409,7 +411,7 @@ if __name__ == "__main__":
         print("\n生成成功!")
         print(f"任务 ID: {result.task_id}")
         print(f"状态: {result.status}")
-        print(f"结果 URL: {result.result_url}")
+        print(f"结果 URL: {result.image_urls}")
         print(f"费用: {result.cost}")
 
     except Exception as e:
@@ -456,10 +458,10 @@ Film-like, slightly muted color grading with high contrast. No text or graphic w
 
             if result.is_completed:
                 print("\n任务处理完成!")
-                print(f"结果 URL: {result.result_url}")
+                print(f"结果 URL: {result.image_urls}")
                 break
             elif result.is_failed:
-                print(f"\n任务处理失败: {result.error}")
+                print(f"\n任务处理失败: {result.error_msg}")
                 break
 
             time.sleep(5)

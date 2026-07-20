@@ -17,8 +17,10 @@ from PIL import Image
 try:
     from .utils import save_image_from_url
     from .hunyuan_image import HunyuanImageClient as ImageClient
+    # from .lk666_image import Lk666ImageClient as ImageClient
 except ImportError:
     from hunyuan_image import HunyuanImageClient as ImageClient
+    # from lk666_image import Lk666ImageClient as ImageClient
     from utils import save_image_from_url
 
 def load_json_config(json_path: str) -> Dict[str, Any]:
@@ -94,6 +96,7 @@ def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, 
         # 调用混元生图API
         # 将原始图片和新产品图作为垫图传入（允许其中之一为空）
         result = client.generate_image_intern(
+            # model="gemini-3.1-flash-image-preview",
             prompt=prompt,
             resolution="1024:1024",
             images=images,  # 垫图：原始场景图 + 新产品图（允许其中之一为空）
