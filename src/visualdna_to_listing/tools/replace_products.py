@@ -60,18 +60,29 @@ def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, 
     name = task.get("名称", f"任务{index + 1}")
     prompt = task.get("提示词", "")
     original_file = task.get("原始图片", "")
-    new_product_image = task.get("新产品图", "")
+    new_product_raw = task.get("新产品图", "")
     output_file = task.get("输出文件", "")
+
+    # 兼容新旧格式：旧格式为字符串，新格式为列表
+    if isinstance(new_product_raw, list):
+        new_product_images = new_product_raw
+    elif isinstance(new_product_raw, str) and new_product_raw.strip():
+        new_product_images = [new_product_raw.strip()]
+    else:
+        new_product_images = []
 
     print(f"\n[{index + 1}/{total}] 处理: {name}")
     print(f"  提示词: {prompt}")
     print(f"  原始图片: {original_file}")
-    print(f"  新产品图: {new_product_image}")
+    print(f"  新产品图: {new_product_images}")
     print(f"  输出文件: {output_file}")
 
     # 验证输入文件（允许其中之一为空，但不允许同时为空）
     original_exists = original_file and Path(original_file).exists()
-    new_product_exists = new_product_image and Path(new_product_image).exists()
+    # 检查新产品图列表中哪些文件存在
+    valid_new_products = [p for p in new_product_images if Path(p).exists()]
+    missing_new_products = [p for p in new_product_images if not Path(p).exists()]
+    new_product_exists = len(valid_new_products) > 0
 
     if not original_exists and not new_product_exists:
         print(f"  错误: 原始图片和新产品图不能同时为空")
@@ -81,8 +92,8 @@ def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, 
         print(f"  错误: 原始图片不存在: {original_file}")
         return False
 
-    if new_product_image and not new_product_exists:
-        print(f"  错误: 新产品图不存在: {new_product_image}")
+    if missing_new_products:
+        print(f"  错误: 以下新产品图不存在: {missing_new_products}")
         return False
 
     try:
@@ -91,7 +102,7 @@ def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, 
         if original_exists:
             images.append(original_file)
         if new_product_exists:
-            images.append(new_product_image)
+            images.extend(valid_new_products)
 
         # 调用混元生图API
         # 将原始图片和新产品图作为垫图传入（允许其中之一为空）
