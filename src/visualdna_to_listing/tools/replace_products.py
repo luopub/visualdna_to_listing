@@ -109,7 +109,7 @@ def process_replace_task(task: Dict[str, str], client: ImageClient, index: int, 
         result = client.generate_image_intern(
             # model="gemini-3.1-flash-image-preview",
             prompt=prompt,
-            resolution="1024:1024",
+            resolution="1200:1200",
             images=images,  # 垫图：原始场景图 + 新产品图（允许其中之一为空）
             logo_add=0,  # 不添加水印
             revise=1,    # 开启提示词改写
